@@ -16,10 +16,10 @@ const Op = db.Sequelize.Op;
 // Pedidos
 // const pedidos = require("./pedidos-seed/pedidos-01.seed");
 // const pedidos = require("./pedidos-seed/pedidos-02.seed");
-const pedidos = require("./pedidos-seed/pedidos-03.seed");
+// const pedidos = require("./pedidos-seed/pedidos-03.seed");
 // const pedidos = require("./pedidos-seed/pedidos-04.seed");
 // const pedidos = require("./pedidos-seed/pedidos-05.seed");
-// const pedidos = require("./pedidos-seed/pedidos-06.seed");
+const pedidos = require("./pedidos-seed/pedidos-06.seed");
 
 // const pedidos = require("./pedidos-seed/arreglandoPedidos");
 
