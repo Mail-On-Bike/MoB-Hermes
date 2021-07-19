@@ -3,6 +3,4 @@ node_modules
 .env
 requests
 
-src/seeders/funciones/
-
 ejemplo.text
