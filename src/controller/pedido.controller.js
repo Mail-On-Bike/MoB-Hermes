@@ -863,6 +863,116 @@ module.exports = {
     }
   },
 
+  // Mostrar Pedidos con Transferencia
+  getPedidosTransferencia: async (req, res) => {
+    try {
+      let { desde, hasta, page, size } = req.query;
+      let condition = {
+        [Op.and]: [
+          { fecha: { [Op.between]: [`%${desde}%`, `%${hasta}%`] } },
+          { formaPago: "Transferencia" },
+          { statusId: { [Op.ne]: 6 } },
+        ],
+      };
+      const { limit, offset } = getPagination(page, size);
+
+      const data = await Pedido.findAndCountAll({
+        where: condition,
+        limit,
+        offset,
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
+      const pedidos = getPagingData(data, page, limit);
+
+      res.json(pedidos);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  // Mostrar Pedidos con Recaudos
+  getPedidosRecaudo: async (req, res) => {
+    try {
+      const pagosExcluidos = [
+        "Efectivo en Destino",
+        "Efectivo en Origen",
+        "Sin Cargo x Canje",
+        "Sin Cargo x Compensación",
+        "Sin Cargo x Cortesía",
+        "Sin Cargo x Envío Propio",
+        "Sin Cargo x Error MoB",
+      ];
+      let { desde, hasta, page, size } = req.query;
+      let condition = {
+        [Op.and]: [
+          { fecha: { [Op.between]: [`%${desde}%`, `%${hasta}%`] } },
+          { formaPago: { [Op.notIn]: pagosExcluidos } },
+          { statusId: { [Op.ne]: 6 } },
+          { recaudo: { [Op.gt]: 0 } },
+        ],
+      };
+      const { limit, offset } = getPagination(page, size);
+
+      const data = await Pedido.findAndCountAll({
+        where: condition,
+        limit,
+        offset,
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
+      const pedidos = getPagingData(data, page, limit);
+
+      res.json(pedidos);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+
   // Mostrar todos los Pedidos dentro de la Ruta
   getPedidosByRuteo: async (req, res) => {
     try {

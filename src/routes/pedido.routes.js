@@ -80,6 +80,20 @@ module.exports = (app) => {
     controller.getHistorialPedidos
   );
 
+  // Ruta para obtener los Pedidos con Transferencias por rango de fechas
+  app.get(
+    "/pedidos-transferencia",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getPedidosTransferencia
+  );
+
+  // Ruta para obtener los Pedidos con Recaudos por rango de fechas
+  app.get(
+    "/pedidos-recaudo",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getPedidosRecaudo
+  );
+
   // Ruta para obtener los Pedidos por Ruteos en el rango de fechas
   app.get(
     "/ruteos-pedidos",
