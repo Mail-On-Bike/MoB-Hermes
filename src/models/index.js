@@ -13,7 +13,6 @@ const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
       collate: "utf8_general_ci",
     },
   },
-  dateStrings: true,
   pool: {
     max: 10,
     min: 0,
