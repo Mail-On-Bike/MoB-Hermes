@@ -41,7 +41,6 @@ const capitalizar = (nombres) => {
 
   return capitalizado;
 };
-// pedidos.forEach(async (pedido) =>
 
 const crearPedidos = async () => {
   try {
@@ -50,7 +49,7 @@ const crearPedidos = async () => {
 
       if (!migracionCtrl) {
         // Formatear Fecha
-        pedido.fecha = new Date(pedido.fecha.split("/").reverse().join("-"));
+        pedido.fecha = pedido.fecha.split("/").reverse().join("-");
 
         // Agregar Rol del Cliente tal cual aparece en la Base de Datos
         const buscarRolCliente = await RolCliente.findOne({
