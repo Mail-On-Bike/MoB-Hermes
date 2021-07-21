@@ -240,13 +240,25 @@ module.exports = {
   getPedidosDelCliente: async (req, res) => {
     try {
       let { desde, hasta, id, page, size } = req.query;
-      const condition = {
-        [Op.and]: [
-          { clienteId: id },
-          { statusId: { [Op.between]: [1, 5] } },
-          { fecha: { [Op.between]: [desde, hasta] } },
-        ],
-      };
+      let condition;
+
+      if (
+        (desde === null || desde === "") &&
+        (hasta === null || hasta === "")
+      ) {
+        condition = {
+          [Op.and]: [{ clienteId: id }, { statusId: { [Op.between]: [1, 5] } }],
+        };
+      } else {
+        condition = {
+          [Op.and]: [
+            { clienteId: id },
+            { statusId: { [Op.between]: [1, 5] } },
+            { fecha: { [Op.between]: [desde, hasta] } },
+          ],
+        };
+      }
+
       const { limit, offset } = getPagination(page, size);
 
       let data = await Pedido.findAndCountAll({

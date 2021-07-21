@@ -262,13 +262,14 @@ module.exports = {
       res.status(500).send({ message: err.message });
     }
   },
+
   getMobikerConPedidos: async (req, res) => {
     try {
       const { desde, hasta } = req.query;
 
       const condition = {
         [Op.and]: [
-          { statusId: { [Op.between]: [4, 5] } },
+          { statusId: { [Op.between]: [2, 5] } },
           { fecha: { [Op.between]: [desde, hasta] } },
         ],
       };
@@ -276,6 +277,7 @@ module.exports = {
       let mobikerConPedidos = {};
 
       const mobikers = await Mobiker.findAll({
+        order: [["fullName", "ASC"]],
         include: [
           {
             model: Distrito,
