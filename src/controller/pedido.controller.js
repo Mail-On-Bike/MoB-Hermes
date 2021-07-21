@@ -63,7 +63,7 @@ module.exports = {
 
       let distritoPedido = await Distrito.findOne({
         where: {
-          distrito: req.body.distritoConsignado,
+          distrito: { [Op.like]: `%${req.body.distritoConsignado}%` },
         },
       });
 
