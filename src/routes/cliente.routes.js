@@ -31,16 +31,17 @@ module.exports = (app) => {
     controller.getClienteById
   );
 
+  // Ruta para mostrar los Pedidos del Cliente con Paginación
   app.get(
     "/clientes/pedidos",
-    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    [authJwt.verifyToken],
     controller.getPedidosDelCliente
   );
 
-  // Ruta para mostrar los Pedidos Asignados al MoBiker
+  // Ruta para mostrar los Pedidos del Cliente por Id sin Paginación
   app.get(
     "/clientes/pedidos-del-cliente/:id",
-    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    [authJwt.verifyToken],
     controller.getPedidosDelClienteById
   );
 
