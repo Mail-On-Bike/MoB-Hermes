@@ -242,20 +242,19 @@ module.exports = {
       let { desde, hasta, id, page, size } = req.query;
       let condition;
 
-      if (
-        (desde === null || desde === "") &&
-        (hasta === null || hasta === "")
-      ) {
-        condition = {
-          [Op.and]: [{ clienteId: id }, { statusId: { [Op.between]: [1, 5] } }],
-        };
-      } else {
+      console.log(req.query);
+
+      if (desde && hasta) {
         condition = {
           [Op.and]: [
             { clienteId: id },
-            { statusId: { [Op.between]: [1, 5] } },
+            { statusId: { [Op.between]: [1, 6] } },
             { fecha: { [Op.between]: [desde, hasta] } },
           ],
+        };
+      } else {
+        condition = {
+          [Op.and]: [{ clienteId: id }, { statusId: { [Op.between]: [1, 6] } }],
         };
       }
 
