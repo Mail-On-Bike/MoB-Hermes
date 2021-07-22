@@ -784,11 +784,20 @@ module.exports = {
 
   searchPedidoProgramados: async (req, res) => {
     try {
-      let { desde, hasta } = req.query;
-      let condition = { fecha: { [Op.between]: [desde, hasta] } };
+      let { desde, hasta, page, size } = req.query;
+      let condition = {
+        [Op.and]: [
+          { fecha: { [Op.between]: [`%${desde}%`, `%${hasta}%`] } },
+          { statusId: { [Op.between]: [1, 2] } },
+        ],
+      };
+      const { limit, offset } = getPagination(page, size);
 
-      let pedido = await Pedido.findAll({
+      let data = await Pedido.findAndCountAll({
         where: condition,
+        limit,
+        offset,
+        order: [["id", "DESC"]],
         include: [
           {
             model: Distrito,
@@ -813,7 +822,9 @@ module.exports = {
         ],
       });
 
-      res.json(pedido);
+      const pedidos = getPagingData(data, page, limit);
+
+      res.json(pedidos);
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
