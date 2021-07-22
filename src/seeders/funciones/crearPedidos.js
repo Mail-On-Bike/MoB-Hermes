@@ -19,18 +19,10 @@ const Op = db.Sequelize.Op;
 // const pedidos = require("./pedidos-seed/pedidos-03.seed");
 // const pedidos = require("./pedidos-seed/pedidos-04.seed");
 // const pedidos = require("./pedidos-seed/pedidos-05.seed");
-const pedidos = require("./pedidos-seed/pedidos-06.seed");
+// const pedidos = require("./pedidos-seed/pedidos-06.seed");
+const pedidos = require("./pedidos-seed/pedidos-07.seed");
 
 // const pedidos = require("./pedidos-seed/arreglandoPedidos");
-
-// const pedidos = [
-//   ...pedidos1,
-//   ...pedidos2,
-//   ...pedidos3,
-//   ...pedidos4,
-//   ...pedidos5,
-//   ...pedidos6,
-// ];
 
 // Funcion para capitalizar las primeras letras
 const capitalizar = (nombres) => {
