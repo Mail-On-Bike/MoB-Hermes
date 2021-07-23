@@ -136,6 +136,7 @@ module.exports = {
     }
   },
 
+  // Obtener los Clientes que tengan Pedidos para Facturarlos en un rango de fechas
   getClientesConPedidos: async (req, res) => {
     try {
       const { desde, hasta } = req.query;
@@ -150,6 +151,7 @@ module.exports = {
       let clienteConPedidos = {};
 
       const clientes = await Cliente.findAll({
+        where: { tipoDeComprobanteId: { [Op.between]: [2, 3] } },
         order: [
           ["biciEnvios", "DESC"],
           ["razonComercial", "ASC"],
@@ -198,6 +200,7 @@ module.exports = {
     }
   },
 
+  // Obtener un Cliente por su Id
   getClienteById: async (req, res) => {
     try {
       const id = req.params.id;
@@ -237,6 +240,7 @@ module.exports = {
     }
   },
 
+  // Obtener todos los Pedidos del Cliente por Id usando paginación. Rango de fechas es opcional
   getPedidosDelCliente: async (req, res) => {
     try {
       let { desde, hasta, id, page, size } = req.query;
@@ -297,6 +301,7 @@ module.exports = {
     }
   },
 
+  // Obtener los Pedidos del Cliente por su Id
   getPedidosDelClienteById: async (req, res) => {
     try {
       const id = req.params.id;
@@ -336,6 +341,7 @@ module.exports = {
     }
   },
 
+  // Editar / Actualizar un Cliente
   updateCliente: async (req, res) => {
     try {
       const id = req.params.id;
