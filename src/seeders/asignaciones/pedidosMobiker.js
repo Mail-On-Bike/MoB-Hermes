@@ -1,6 +1,7 @@
 const db = require("../../models/index");
 const Mobiker = db.mobiker;
 const Pedido = db.pedido;
+const Rango = db.rango;
 
 const Op = db.Sequelize.Op;
 
@@ -45,12 +46,52 @@ const contarPedidosMoBiker = async () => {
         },
       });
 
+      // Actualizando el Nivel MoB
+      const mobikerConNuevoRango = await Mobiker.findOne({
+        where: { id: mobiker.id },
+        include: [
+          {
+            model: Rango,
+          },
+        ],
+      });
+
+      let nuevoRango = mobikerConNuevoRango.rango.rangoMoBiker;
+
+      // Caso para subir a MoBiker
+      if (
+        cantidadPedidosDelMoBiker > 100 &&
+        mobikerConNuevoRango.rango.id !== 5 &&
+        mobikerConNuevoRango.rango.id !== 6
+      ) {
+        nuevoRango = 2;
+      }
+
+      // Caso para subir a MoBiker Pro
+      if (
+        cantidadPedidosDelMoBiker > 500 &&
+        mobikerConNuevoRango.rango.id !== 5 &&
+        mobikerConNuevoRango.rango.id !== 6
+      ) {
+        nuevoRango = 3;
+      }
+
+      // Caso para subir a MoBiker Élite
+      if (
+        cantidadPedidosDelMoBiker > 1000 &&
+        mobikerConNuevoRango.rango.id !== 5 &&
+        mobikerConNuevoRango.rango.id !== 6
+      ) {
+        nuevoRango = 4;
+      }
+
       await Mobiker.update(
         {
           biciEnvios: cantidadPedidosDelMoBiker,
           kilometros: kilometrosAsignadosMobiker,
           CO2Ahorrado: CO2AsignadosMobiker,
           ruido: ruidoAsignadosMobiker,
+          rangoId: nuevoRango,
         },
         {
           where: { id: mobiker.id },
