@@ -151,7 +151,6 @@ module.exports = {
       let clienteConPedidos = {};
 
       const clientes = await Cliente.findAll({
-        where: { tipoDeComprobanteId: { [Op.between]: [2, 3] } },
         order: [
           ["biciEnvios", "DESC"],
           ["razonComercial", "ASC"],

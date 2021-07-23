@@ -874,6 +874,7 @@ module.exports = {
             ],
           },
           order: [["id", "DESC"]],
+          limit: 200,
           include: [
             {
               model: Distrito,
