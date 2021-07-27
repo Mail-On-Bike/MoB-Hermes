@@ -5,8 +5,8 @@ const Sequelize = require("sequelize");
 const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
   host: config.HOST,
   dialect: config.dialect,
-  timezone: "-05:00",
   port: 3306,
+  timezone: "-05:00",
   define: {
     charset: "utf8",
     dialectOptions: {
