@@ -176,7 +176,7 @@ module.exports = {
             ],
           });
 
-          let nuevoRango = mobikerConNuevoRango.rango.rangoMoBiker;
+          let nuevoRango = mobikerConNuevoRango.rango.id;
 
           // Caso para subir a MoBiker
           if (
@@ -498,7 +498,7 @@ module.exports = {
           ],
         });
 
-        let nuevoRango = mobikerConNuevoRango.rango.rangoMoBiker;
+        let nuevoRango = mobikerConNuevoRango.rango.id;
 
         // Caso para subir a MoBiker
         if (
@@ -675,7 +675,7 @@ module.exports = {
           ],
         });
 
-        let nuevoRango = mobikerConNuevoRango.rango.rangoMoBiker;
+        let nuevoRango = mobikerConNuevoRango.rango.id;
 
         // Caso para subir a MoBiker
         if (
@@ -801,7 +801,7 @@ module.exports = {
           ],
         });
 
-        let nuevoRango = mobikerConNuevoRango.rango.rangoMoBiker;
+        let nuevoRango = mobikerConNuevoRango.rango.id;
 
         // Caso para subir a MoBiker
         if (

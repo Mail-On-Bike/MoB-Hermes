@@ -56,7 +56,7 @@ const contarPedidosMoBiker = async () => {
         ],
       });
 
-      let nuevoRango = mobikerConNuevoRango.rango.rangoMoBiker;
+      let nuevoRango = mobikerConNuevoRango.rango.id;
 
       // Caso para subir a MoBiker
       if (
