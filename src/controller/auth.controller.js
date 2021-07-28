@@ -92,6 +92,64 @@ module.exports = {
     }
   },
 
+  // Editar usuario
+  updateUser: async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      const usuario = await User.findByPk(id);
+
+      const roles = await Role.findAll({
+        where: {
+          name: {
+            [Op.or]: req.body.roles,
+          },
+        },
+      });
+
+      await usuario.removeRoles(roles);
+      await usuario.setRoles(roles);
+
+      const user = {
+        fullName: req.body.fullName,
+        username: req.body.username,
+        email: req.body.email,
+        empresa: req.body.empresa,
+      };
+
+      const actualizarUser = await User.update(user, { where: { id } });
+
+      if (actualizarUser) {
+        res.status(200).json({
+          message: "¡El usuario fue actualizado satisfactoriamente!",
+        });
+      } else {
+        res.json({
+          message: "¡Error! No se ha podido actualizar el usuario...",
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  // Obtener un usuario
+  getUserById: async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      const user = await User.findOne({
+        where: { id },
+        attributes: ["id", "username", "fullName", "email", "empresa"],
+        include: [{ model: Role, attributes: ["name"] }],
+      });
+
+      res.json(user);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
   // Cambiar contraseña
   changePassword: async (req, res) => {
     try {

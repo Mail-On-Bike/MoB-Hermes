@@ -25,11 +25,25 @@ module.exports = function (app) {
   // Iniciar sesión
   app.post("/login", controller.signin);
 
+  // Editar Usuario
+  app.put(
+    "/edit-user/:id",
+    [authJwt.verifyToken, authJwt.isAdmin],
+    controller.updateUser
+  );
+
   // Cambiar la contraseña
   app.put(
     "/change-password/:id",
     authJwt.verifyToken,
     controller.changePassword
+  );
+
+  // Obtener un usuario
+  app.get(
+    "/user/:id",
+    [authJwt.verifyToken, authJwt.isAdmin],
+    controller.getUserById
   );
 
   // Restablecer la contraseña
