@@ -153,9 +153,9 @@ module.exports = {
   // Cambiar contraseña
   changePassword: async (req, res) => {
     try {
-      const user = await User.findOne({
-        where: { username: req.body.username },
-      });
+      const id = req.params.id;
+
+      const user = await User.findByPk(id);
 
       const oldPassword = bcrypt.compareSync(
         req.body.oldPassword,
@@ -172,7 +172,7 @@ module.exports = {
         {
           password: bcrypt.hashSync(req.body.newPassword, 10),
         },
-        { where: { id: user.id } }
+        { where: { id } }
       );
 
       if (passwordActualizada) {
