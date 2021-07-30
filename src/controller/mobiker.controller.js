@@ -87,7 +87,6 @@ module.exports = {
     try {
       let mobikers = await Mobiker.findAll({
         order: [["fullName", "ASC"]],
-        limit: 100,
         include: [
           {
             model: Distrito,
@@ -112,7 +111,6 @@ module.exports = {
       let mobikers = await Mobiker.findAll({
         where: { status },
         order: [["fullName", "ASC"]],
-        limit: 100,
         include: [
           {
             model: Distrito,
