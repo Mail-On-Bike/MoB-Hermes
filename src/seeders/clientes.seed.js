@@ -39567,6 +39567,7 @@ const clientes = [
     pago: 7,
     operador: "avallejo",
   },
+
 ];
 
 module.exports = clientes;
