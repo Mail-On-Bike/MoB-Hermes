@@ -8,9 +8,11 @@ const router = require("./routes/index.routes");
 // Initializations
 const app = express();
 
+
+
 // Settings
 const corsOptions = {
-	origin: "http://localhost:8081",
+	origin: process.env.IRIS_URL.split(','),
 };
 
 // Creating the sync to DB
@@ -26,15 +28,14 @@ app.use("/hermes", router);
 
 // Set PORT and start the server
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-	console.log(`Hermes está en línea en el puerto: ${PORT}`);
+app.listen(PORT, async () => {
+	try {
+		console.log(`Hermes está en línea en el puerto: ${PORT}`);
+		await db.sequelize.authenticate();
 
-	db.sequelize
-		.sync()
-		.then(() => {
-			console.log("Se ha establecido la conexión con la Base de Datos");
-		})
-		.catch((err) => {
-			console.log("Ha ocurrido un error con la conexión: ", err);
-		});
+		console.log("Se ha establecido la conexión con la Base de Datos");
+	} catch (error) {
+		console.log(`Ha ocurrido un error con la conexión:  ${error.message}`);
+		console.log(error);
+	}
 });

@@ -8,7 +8,11 @@ module.exports = (sequelize, Sequelize) => {
 				allowNull: false,
 			},
 			rangoMoBiker: {
-				type: Sequelize.STRING(15),
+				type: Sequelize.STRING(16),
+				allowNull: false,
+			},
+			comision: {
+				type: Sequelize.FLOAT(3),
 				allowNull: false,
 			},
 		},

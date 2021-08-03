@@ -1,0 +1,86 @@
+const bcrypt = require("bcryptjs");
+
+const usuarios = [
+  {
+    fullName: "Daniel Colmenares",
+    username: "dcolmenares",
+    email: "dacolmenares93@gmail.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [1, 5],
+  },
+  {
+    fullName: "Fernando Carbajal",
+    username: "fcarbajal",
+    email: "fcarbajal@dan.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [1, 5],
+  },
+  {
+    fullName: "Sofía Zegarra",
+    username: "szegarra",
+    email: "szegarra@dan.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [1, 5],
+  },
+  {
+    fullName: "Gaby Viloria",
+    username: "gviloria",
+    email: "gvil@dan.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [3, 5],
+  },
+  {
+    fullName: "Anderson Vallejo",
+    username: "avallejo",
+    email: "avell@dan.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [2, 5],
+  },
+  {
+    fullName: "Angelica Moreno",
+    username: "amoreno",
+    email: "amoreno@dan.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [2, 5],
+  },
+  {
+    fullName: "Alberto Hernandez",
+    username: "beto",
+    email: "beto@dan.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [2, 5],
+  },
+  {
+    fullName: "Mariale Alvarez",
+    username: "mariale",
+    email: "mariale@dan.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [2, 5],
+  },
+  {
+    fullName: "Ilen Moya",
+    username: "imoya",
+    email: "imoya@dan.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [2, 5],
+  },
+  {
+    fullName: "Javier Torres",
+    username: "jtorres",
+    email: "javiertorresm2000@gmail.com",
+    password: bcrypt.hashSync("123123", 10),
+    empresa: "Mail On Bike",
+    roles: [1],
+  },
+];
+
+module.exports = usuarios;

@@ -11,273 +11,387 @@ const Status = db.status;
 const Op = db.Sequelize.Op;
 
 const getPagination = (page, size) => {
-	const limit = size ? +size : 50;
-	const offset = page ? page * limit : 0;
+  const limit = size ? +size : 50;
+  const offset = page ? page * limit : 0;
 
-	return { limit, offset };
+  return { limit, offset };
 };
 const getPagingData = (data, page, limit) => {
-	const { count: totalPedidos, rows: pedidos } = data;
-	const currentPage = page ? +page : 0;
-	const totalPages = Math.ceil(totalPedidos / limit);
+  const { count: totalPedidos, rows: pedidos } = data;
+  const currentPage = page ? +page : 0;
+  const totalPages = Math.ceil(totalPedidos / limit);
 
-	return { totalPedidos, pedidos, totalPages, currentPage };
+  return { totalPedidos, pedidos, totalPages, currentPage };
 };
 
 module.exports = {
-	storageMobiker: async (req, res) => {
-		try {
-			const mobiker = {
-				nombres: req.body.nombres,
-				apellidos: req.body.apellidos,
-				telefono: req.body.telefono,
-				telegram: req.body.telegram,
-				direccion: req.body.direccion,
-				tipoDocumento: req.body.tipoDocumento,
-				numeroDocumento: req.body.numeroDocumento,
-				email: req.body.email,
-				genero: req.body.genero,
-				banco: req.body.banco,
-				tipoCuenta: req.body.tipoCuenta,
-				numeroCuentaBancaria: req.body.numeroCuentaBancaria,
-				equipo: req.body.equipo,
-				tipoBicicleta: req.body.tipoBicicleta,
-				fechaNacimiento: req.body.fechaNacimiento,
-				fechaIngreso: req.body.fechaIngreso,
-				status: req.body.status,
-			};
+  storageMobiker: async (req, res) => {
+    try {
+      const mobiker = {
+        nombres: req.body.nombres,
+        apellidos: req.body.apellidos,
+        telefono: req.body.telefono,
+        telegram: req.body.telegram,
+        direccion: req.body.direccion,
+        tipoDocumento: req.body.tipoDocumento,
+        numeroDocumento: req.body.numeroDocumento,
+        email: req.body.email,
+        genero: req.body.genero,
+        banco: req.body.banco,
+        tipoCuenta: req.body.tipoCuenta,
+        numeroCuentaBancaria: req.body.numeroCuentaBancaria,
+        equipo: req.body.equipo,
+        tipoBicicleta: req.body.tipoBicicleta,
+        fechaNacimiento: req.body.fechaNacimiento,
+        fechaIngreso: req.body.fechaIngreso,
+        status: req.body.status,
+      };
 
-			mobiker.fullName = `${req.body.nombres.split(" ")[0]} ${
-				req.body.apellidos.split(" ")[0]
-			}`;
+      mobiker.fullName = `${req.body.nombres.split(" ")[0]} ${
+        req.body.apellidos.split(" ")[0]
+      }`;
 
-			let distrito = await Distrito.findOne({
-				where: {
-					distrito: req.body.distrito,
-				},
-			});
+      let distrito = await Distrito.findOne({
+        where: {
+          distrito: req.body.distrito,
+        },
+      });
 
-			let rangoInicial = await Rango.findOne({
-				where: {
-					rangoMoBiker: req.body.rango,
-				},
-			});
+      let rangoInicial = await Rango.findOne({
+        where: {
+          rangoMoBiker: req.body.rango,
+        },
+      });
 
-			if (distrito && rangoInicial) {
-				try {
-					let nuevoMobiker = await Mobiker.create(mobiker);
+      if (distrito && rangoInicial) {
+        try {
+          let nuevoMobiker = await Mobiker.create(mobiker);
 
-					await nuevoMobiker.setDistrito(distrito);
-					await nuevoMobiker.setRango(rangoInicial);
+          await nuevoMobiker.setDistrito(distrito);
+          await nuevoMobiker.setRango(rangoInicial);
 
-					res.json({ message: "¡Se ha creado el MoBiker con éxito!" });
-				} catch (err) {
-					res.status(500).send({ message: err.message });
-				}
-			} else {
-				res.json({ message: "¡Error! No se ha podido crear el mobiker..." });
-			}
-		} catch (err) {
-			res.status(500).send({ message: err.message });
-		}
-	},
+          res.json({ message: "¡Se ha creado el MoBiker con éxito!" });
+        } catch (err) {
+          res.status(500).send({ message: err.message });
+        }
+      } else {
+        res.json({ message: "¡Error! No se ha podido crear el mobiker..." });
+      }
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
 
-	// Mostrar todos los MoBikers
-	equipoMobiker: async (req, res) => {
-		try {
-			let mobikers = await Mobiker.findAll({
-				include: [
-					{
-						model: Distrito,
-					},
-					{
-						model: Rango,
-					},
-				],
-			});
+  // Mostrar todos los MoBikers
+  equipoMobiker: async (req, res) => {
+    try {
+      let mobikers = await Mobiker.findAll({
+        order: [["fullName", "ASC"]],
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Rango,
+          },
+        ],
+      });
 
-			res.json(mobikers);
-		} catch (err) {
-			res.status(500).send({ message: err.message });
-		}
-	},
+      res.json(mobikers);
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
 
-	// Mostrar 1 MoBiker por id
-	getMobikerById: async (req, res) => {
-		try {
-			const id = req.params.id;
+  // Mostrar todos los MoBikers
+  filterMobiker: async (req, res) => {
+    try {
+      const { status } = req.query;
 
-			let mobiker = await Mobiker.findByPk(id, {
-				include: [
-					{
-						model: Distrito,
-					},
-					{
-						model: Rango,
-					},
-				],
-			});
+      let mobikers = await Mobiker.findAll({
+        where: { status },
+        order: [["fullName", "ASC"]],
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Rango,
+          },
+        ],
+      });
 
-			if (!mobiker) {
-				res.status(404).json({ msg: "No se ha encontrado el MoBiker" });
-			} else {
-				res.json(mobiker);
-			}
-		} catch (err) {
-			res.status(500).send({ message: err.message });
-		}
-	},
+      res.json(mobikers);
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
 
-	getPedidosDelMobiker: async (req, res) => {
-		try {
-			let { desde, hasta, id, page, size } = req.query;
-			const condition = {
-				[Op.and]: [
-					{ mobikerId: id },
-					{ statusId: { [Op.between]: [4, 16] } },
-					{ fecha: { [Op.between]: [desde, hasta] } },
-				],
-			};
-			const { limit, offset } = getPagination(page, size);
+  // Mostrar 1 MoBiker por id
+  getMobikerById: async (req, res) => {
+    try {
+      const id = req.params.id;
 
-			let data = await Pedido.findAndCountAll({
-				order: [["id", "DESC"]],
-				where: condition,
-				limit,
-				offset,
-				include: [
-					{
-						model: Distrito,
-					},
-					{
-						model: Mobiker,
-						attributes: ["fullName"],
-					},
-					{
-						model: Cliente,
-						attributes: ["contacto", "empresa"],
-					},
-					{
-						model: Envio,
-					},
-					{
-						model: Modalidad,
-					},
-					{
-						model: Status,
-					},
-				],
-			});
+      let mobiker = await Mobiker.findByPk(id, {
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Rango,
+          },
+        ],
+      });
 
-			const pedidosDelMobiker = getPagingData(data, page, limit);
+      if (!mobiker) {
+        res.status(404).json({ msg: "No se ha encontrado el MoBiker" });
+      } else {
+        res.json(mobiker);
+      }
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
 
-			res.json(pedidosDelMobiker);
-		} catch (err) {
-			res.status(500).send({ message: err.message });
-		}
-	},
+  getPedidosDelMobiker: async (req, res) => {
+    try {
+      let { desde, hasta, id, page, size } = req.query;
+      const condition = {
+        [Op.and]: [
+          { mobikerId: id },
+          { statusId: { [Op.between]: [4, 5] } },
+          { fecha: { [Op.between]: [desde, hasta] } },
+        ],
+      };
+      const { limit, offset } = getPagination(page, size);
 
-	getCantidadPedidosMobiker: async (req, res) => {
-		try {
-			let { desde, hasta, mobikerId } = req.query;
-			const condition = {
-				[Op.and]: [
-					{ mobikerId: mobikerId },
-					{ statusId: { [Op.between]: [4, 16] } },
-					{ fecha: { [Op.between]: [desde, hasta] } },
-				],
-			};
+      let data = await Pedido.findAndCountAll({
+        order: [["id", "DESC"]],
+        where: condition,
+        limit,
+        offset,
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
 
-			let cantidadPedidos = await Pedido.count({ where: condition });
+      const pedidosDelMobiker = getPagingData(data, page, limit);
 
-			res.json(cantidadPedidos);
-		} catch (err) {
-			res.status(500).send({ message: err.message });
-		}
-	},
+      res.json(pedidosDelMobiker);
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
 
-	// Editar MoBiker
-	updateMobiker: async (req, res) => {
-		try {
-			const id = req.params.id;
+  getPedidosDelMobikerById: async (req, res) => {
+    try {
+      let id = req.params.id;
+      const condition = {
+        mobikerId: id,
+      };
 
-			let distrito = await Distrito.findOne({
-				where: {
-					distrito: req.body.distrito,
-				},
-			});
+      let pedidosDelMobikerById = await Pedido.findAll({
+        order: [["id", "DESC"]],
+        where: condition,
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
 
-			let rangoInicial = await Rango.findOne({
-				where: {
-					rangoMoBiker: req.body.rango,
-				},
-			});
+      res.json(pedidosDelMobikerById);
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
 
-			let mobiker = {
-				nombres: req.body.nombres,
-				apellidos: req.body.apellidos,
-				telefono: req.body.telefono,
-				telegram: req.body.telegram,
-				direccion: req.body.direccion,
-				distritoId: distrito.id,
-				tipoDocumento: req.body.tipoDocumento,
-				numeroDocumento: req.body.numeroDocumento,
-				email: req.body.email,
-				genero: req.body.genero,
-				banco: req.body.banco,
-				tipoCuenta: req.body.tipoCuenta,
-				numeroCuentaBancaria: req.body.numeroCuentaBancaria,
-				rangoId: rangoInicial.id,
-				equipo: req.body.equipo,
-				tipoBicicleta: req.body.tipoBicicleta,
-				fechaNacimiento: req.body.fechaNacimiento,
-				fechaIngreso: req.body.fechaIngreso,
-				status: req.body.status,
-			};
+  getCantidadPedidosMobiker: async (req, res) => {
+    try {
+      let { desde, hasta, mobikerId } = req.query;
+      const condition = {
+        [Op.and]: [
+          { mobikerId: mobikerId },
+          { statusId: { [Op.between]: [4, 5] } },
+          { fecha: { [Op.between]: [desde, hasta] } },
+        ],
+      };
 
-			mobiker.fullName = `${req.body.nombres.split(" ")[0]} ${
-				req.body.apellidos.split(" ")[0]
-			}`;
+      let cantidadPedidos = await Pedido.count({ where: condition });
 
-			let mobikerActualizado = await Mobiker.update(mobiker, {
-				where: {
-					id: id,
-				},
-			});
+      res.json(cantidadPedidos);
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
 
-			if (mobikerActualizado) {
-				res.json({ message: "¡Se ha actualizado el MoBiker con éxito!" });
-			} else {
-				res.json({
-					message: "¡Error! No se ha podido actualizar el mobiker...",
-				});
-			}
-		} catch (err) {
-			res.status(500).send({ message: err.message });
-		}
-	},
+  getMobikerConPedidos: async (req, res) => {
+    try {
+      const { desde, hasta } = req.query;
 
-	searchMobiker: async (req, res) => {
-		try {
-			const query = req.query.q;
+      const condition = {
+        [Op.and]: [
+          { statusId: { [Op.between]: [2, 5] } },
+          { fecha: { [Op.between]: [desde, hasta] } },
+        ],
+      };
+      let mobikersConPedidos = [];
+      let mobikerConPedidos = {};
 
-			let mobiker = await Mobiker.findAll({
-				where: {
-					fullName: { [Op.like]: `%${query}%` },
-				},
-				include: [
-					{
-						model: Distrito,
-					},
-					{
-						model: Rango,
-					},
-				],
-			});
+      const mobikers = await Mobiker.findAll({
+        order: [["fullName", "ASC"]],
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Rango,
+          },
+        ],
+      });
 
-			res.json(mobiker);
-		} catch (err) {
-			res.status(500).send({ message: err.message });
-		}
-	},
+      for (let mobiker of mobikers) {
+        let cantidadPedidos = await Pedido.sum("viajes", {
+          where: { [Op.and]: [{ mobikerId: mobiker.id }, condition] },
+        });
+
+        if (cantidadPedidos > 0) {
+          mobikerConPedidos = {
+            mobiker,
+            cantidadPedidos: cantidadPedidos,
+          };
+
+          mobikersConPedidos.push(mobikerConPedidos);
+        }
+      }
+
+      res.json(mobikersConPedidos);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  // Editar MoBiker
+  updateMobiker: async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      let distrito = await Distrito.findOne({
+        where: {
+          distrito: req.body.distrito,
+        },
+      });
+
+      let rangoInicial = await Rango.findOne({
+        where: {
+          rangoMoBiker: req.body.rango,
+        },
+      });
+
+      let mobiker = {
+        nombres: req.body.nombres,
+        apellidos: req.body.apellidos,
+        telefono: req.body.telefono,
+        telegram: req.body.telegram,
+        direccion: req.body.direccion,
+        distritoId: distrito.id,
+        tipoDocumento: req.body.tipoDocumento,
+        numeroDocumento: req.body.numeroDocumento,
+        email: req.body.email,
+        genero: req.body.genero,
+        banco: req.body.banco,
+        tipoCuenta: req.body.tipoCuenta,
+        numeroCuentaBancaria: req.body.numeroCuentaBancaria,
+        rangoId: rangoInicial.id,
+        equipo: req.body.equipo,
+        tipoBicicleta: req.body.tipoBicicleta,
+        fechaNacimiento: req.body.fechaNacimiento,
+        fechaIngreso: req.body.fechaIngreso,
+        status: req.body.status,
+      };
+
+      mobiker.fullName = `${req.body.nombres.split(" ")[0]} ${
+        req.body.apellidos.split(" ")[0]
+      }`;
+
+      let mobikerActualizado = await Mobiker.update(mobiker, {
+        where: {
+          id: id,
+        },
+      });
+
+      if (mobikerActualizado) {
+        res.json({ message: "¡Se ha actualizado el MoBiker con éxito!" });
+      } else {
+        res.json({
+          message: "¡Error! No se ha podido actualizar el mobiker...",
+        });
+      }
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
+
+  searchMobiker: async (req, res) => {
+    try {
+      const query = req.query.q;
+
+      let mobiker = await Mobiker.findAll({
+        order: [["fullName", "ASC"]],
+        where: {
+          fullName: { [Op.like]: `%${query}%` },
+        },
+        limit: 100,
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Rango,
+          },
+        ],
+      });
+
+      res.json(mobiker);
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
 };
