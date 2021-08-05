@@ -10,6 +10,20 @@ module.exports = (app) => {
     next();
   });
 
+  // Ruta para crear un nuevo destino Recurrente
+  app.post(
+    "/crear-destino-recurrente",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.storageDestino
+  );
+
+  // Ruta para editar un destino Recurrente
+  app.put(
+    "/destinos-recurrentes/:id",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.updateDestino
+  );
+
   // Ruta para obtener todos los Destinos Recurrentes
   app.get(
     "/destinos-recurrentes",
