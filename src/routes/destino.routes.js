@@ -24,6 +24,13 @@ module.exports = (app) => {
     controller.updateDestino
   );
 
+  // Ruta para obtener un destino Recurrente por su Id
+  app.get(
+    "/destinos-recurrentes/:id",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getDestinoById
+  );
+
   // Ruta para obtener todos los Destinos Recurrentes
   app.get(
     "/destinos-recurrentes",

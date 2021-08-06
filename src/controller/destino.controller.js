@@ -93,6 +93,27 @@ module.exports = {
     }
   },
 
+  getDestinoById: async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      let destino = await Destino.findByPk(id);
+
+      if (destino) {
+        res.json(destino);
+      } else {
+        res.json({
+          message: "¡Error! No se ha podido actualizar el destino...",
+        });
+      }
+    } catch (error) {
+      console.log(
+        `Error al obtener un Destino Recurrente por ID: ${error.message}`
+      );
+      res.status(500).send({ message: error.message });
+    }
+  },
+
   searchDestino: async (req, res) => {
     try {
       const query = req.query.q;
