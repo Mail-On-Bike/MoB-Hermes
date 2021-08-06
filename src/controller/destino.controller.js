@@ -97,7 +97,13 @@ module.exports = {
     try {
       const id = req.params.id;
 
-      let destino = await Destino.findByPk(id);
+      let destino = await Destino.findByPk(id, {
+        include: [
+          {
+            model: Distrito,
+          },
+        ],
+      });
 
       if (destino) {
         res.json(destino);
