@@ -1,5 +1,6 @@
 const db = require("../models/index");
 const config = require("../config/auth.config");
+const Role = db.role;
 const UserCliente = db.userCliente;
 const Cliente = db.cliente;
 const Distrito = db.distrito;
@@ -13,6 +14,37 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 module.exports = {
+  // Register
+  createUserCliente: async (req, res) => {
+    try {
+      const userCliente = {
+        contacto: req.body.contacto,
+        username: req.body.username,
+        email: req.body.email,
+        telefono: req.body.telefono,
+        password: bcrypt.hashSync(req.body.password, 10),
+      };
+
+      const clienteAsociado = await Cliente.findOne({
+        where: { razonComercial: req.body.empresa },
+      });
+
+      const rolUser = await Role.findOne({ where: { name: req.body.role } });
+
+      const nuevoUsuario = await UserCliente.create(userCliente);
+      await nuevoUsuario.setCliente(clienteAsociado);
+      await nuevoUsuario.setRole(rolUser);
+
+      if (nuevoUsuario) {
+        res.status(200).json({
+          message: "¡El usuario cliente fue registrado satisfactoriamente!",
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
+
   // Login
   signinCliente: async (req, res) => {
     try {
@@ -84,7 +116,7 @@ module.exports = {
   // Editar usuario
   updateUserCliente: async (req, res) => {
     try {
-      console.log(req.body)
+      console.log(req.body);
       const id = req.params.id;
 
       const user = {
@@ -92,13 +124,12 @@ module.exports = {
         username: req.body.username,
         email: req.body.email,
         telefono: req.body.telefono,
-        clienteId: req.body.clienteId
+        clienteId: req.body.clienteId,
       };
 
       const actualizarUser = await UserCliente.update(user, { where: { id } });
-      console.log(actualizarUser)
+      console.log(actualizarUser);
       if (actualizarUser) {
-
         const clienteAsignado = await Cliente.findOne({
           where: { id: user.clienteId },
           include: [
@@ -128,8 +159,6 @@ module.exports = {
           expiresIn: 2592000, // 30 días
         });
 
-        
-
         // Enviando el accessToken
         res.status(200).json({
           id,
@@ -141,7 +170,6 @@ module.exports = {
           message: "Usuario actualizado correctamente",
           clienteAsignado,
         });
-
       } else {
         res.json({
           message: "¡Error! No se ha podido actualizar el usuario...",
