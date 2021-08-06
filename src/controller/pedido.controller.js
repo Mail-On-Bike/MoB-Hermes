@@ -625,8 +625,37 @@ module.exports = {
         where: { id: id },
       });
 
+      let sendPedido = await Pedido.findOne({
+        where: { id },
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
       if (pedidoActualizado) {
-        res.json({ message: "¡Se ha asignado el Pedido con éxito!" });
+        res.json({
+          message: "¡Se ha asignado el Pedido con éxito!",
+          sendPedido,
+        });
 
         // Asignar al MoBiker
         let cantidadPedidosDelMoBiker = await Pedido.sum("viajes", {
