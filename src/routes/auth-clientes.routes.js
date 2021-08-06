@@ -11,4 +11,8 @@ module.exports = function (app) {
   });
 
   app.post("/login-cliente", controller.signinCliente);
+
+  app.put("/update-user-cliente/:id",[authJwt.verifyToken], controller.updateUserCliente);
+
+  app.post("/change-password/:id",[authJwt.verifyToken], controller.changePasswordUserCliente);
 };
