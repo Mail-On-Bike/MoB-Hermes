@@ -26,7 +26,12 @@ require("./cliente.routes")(router);
 // Tablas Auxiliares
 require("./auxiliares.routes")(router);
 
+// Para Testing
 require("./testing.routes")(router);
+
+// Empresas registradas
+require("./empresa.routes")(router);
+
 // Destinos Recurrentes
 require("./destino.routes")(router);
 

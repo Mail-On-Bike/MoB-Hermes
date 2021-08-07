@@ -129,6 +129,9 @@ db.cliente.belongsTo(db.envio);
 
 db.user.hasMany(db.cliente);
 db.cliente.belongsTo(db.user);
+
+db.empresa.hasMany(db.cliente);
+db.cliente.belongsTo(db.empresa);
 // Fin relaciones de Clientes
 
 // Relaciones de MoBikers
