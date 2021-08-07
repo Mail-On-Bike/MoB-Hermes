@@ -466,4 +466,39 @@ module.exports = {
       res.status(500).send({ message: err.message });
     }
   },
+
+  // Estadísticas del Cliente en el año actual
+  getActualStats: async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      const desde = `${new Date().getFullYear()}-01-01`;
+      const hasta = new Date().toISOString().split("T")[0];
+      const condition = {
+        [Op.and]: [
+          { clienteId: id },
+          { statusId: { [Op.between]: [1, 5] } },
+          { fecha: { [Op.between]: [desde, hasta] } },
+        ],
+      };
+
+      const pedidosCliente = await Pedido.sum("viajes", { where: condition });
+      const kilometrosCliente = await Pedido.sum("distancia", {
+        where: condition,
+      });
+      const co2Cliente = await Pedido.sum("CO2Ahorrado", { where: condition });
+      const ruidoCliente = await Pedido.sum("ruido", { where: condition });
+
+      statsCliente = {
+        pedidosCliente: +pedidosCliente,
+        kilometrosCliente: +kilometrosCliente.toFixed(1),
+        co2Cliente: +co2Cliente.toFixed(1),
+        ruidoCliente: +ruidoCliente.toFixed(1),
+      };
+
+      res.json(statsCliente);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
 };

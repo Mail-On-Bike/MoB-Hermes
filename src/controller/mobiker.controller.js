@@ -303,7 +303,7 @@ module.exports = {
           if (cantidadPedidos > 0) {
             mobikerConPedidos = {
               mobiker,
-              cantidadPedidos: cantidadPedidos,
+              cantidadPedidos,
             };
 
             mobikersConPedidos.push(mobikerConPedidos);
