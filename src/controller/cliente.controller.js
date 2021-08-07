@@ -189,7 +189,7 @@ module.exports = {
             where: { clienteId: cliente.id },
           });
 
-          if (cantidadPedidos !== 0) {
+          if (cantidadPedidos > 0) {
             clienteConPedidos = {
               cliente,
               cantidadPedidos,
