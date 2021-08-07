@@ -284,7 +284,7 @@ module.exports = {
 
       for (pedido of pedidos) {
         let mobiker = await Mobiker.findOne({
-          where: { id: pedido.mobikerId },
+          where: { [Op.and]: [{ id: pedido.mobikerId }, condition] },
           include: [
             {
               model: Distrito,

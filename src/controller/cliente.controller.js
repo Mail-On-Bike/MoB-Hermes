@@ -186,7 +186,7 @@ module.exports = {
 
         if (!clientesRepetidos.includes(cliente.id)) {
           let cantidadPedidos = await Pedido.sum("viajes", {
-            where: { clienteId: cliente.id },
+            where: { [Op.and]: [{ clienteId: cliente.id }, condition] },
           });
 
           if (cantidadPedidos > 0) {
