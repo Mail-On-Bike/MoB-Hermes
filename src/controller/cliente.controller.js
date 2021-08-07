@@ -147,48 +147,58 @@ module.exports = {
           { fecha: { [Op.between]: [desde, hasta] } },
         ],
       };
+
+      // Array de control para que no se repitan los clientes
+      let clientesRepetidos = [];
+
       let clientesConPedidos = [];
       let clienteConPedidos = {};
 
-      const clientes = await Cliente.findAll({
-        order: [
-          ["biciEnvios", "DESC"],
-          ["razonComercial", "ASC"],
-        ],
-        include: [
-          {
-            model: Distrito,
-          },
-          {
-            model: Comprobante,
-          },
-          {
-            model: RolCliente,
-          },
-          {
-            model: Carga,
-          },
-          {
-            model: FormaDePago,
-          },
-          {
-            model: Envio,
-          },
-        ],
+      const pedidos = await Pedido.findAll({
+        where: condition,
+        order: [["id", "DESC"]],
       });
 
-      for (let cliente of clientes) {
-        let cantidadPedidos = await Pedido.count({
-          where: { [Op.and]: [{ clienteId: cliente.id }, condition] },
+      for (pedido of pedidos) {
+        let cliente = await Cliente.findOne({
+          where: { id: pedido.clienteId },
+          include: [
+            {
+              model: Distrito,
+            },
+            {
+              model: Comprobante,
+            },
+            {
+              model: RolCliente,
+            },
+            {
+              model: Carga,
+            },
+            {
+              model: FormaDePago,
+            },
+            {
+              model: Envio,
+            },
+          ],
         });
 
-        if (cantidadPedidos !== 0) {
-          clienteConPedidos = {
-            cliente,
-            cantidadPedidos: cantidadPedidos,
-          };
+        if (!clientesRepetidos.includes(cliente.id)) {
+          let cantidadPedidos = await Pedido.sum("viajes", {
+            where: { clienteId: cliente.id },
+          });
 
-          clientesConPedidos.push(clienteConPedidos);
+          if (cantidadPedidos !== 0) {
+            clienteConPedidos = {
+              cliente,
+              cantidadPedidos,
+            };
+
+            clientesConPedidos.push(clienteConPedidos);
+          }
+
+          clientesRepetidos.push(cliente.id);
         }
       }
 
