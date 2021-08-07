@@ -406,4 +406,26 @@ module.exports = {
       res.status(500).send({ message: err.message });
     }
   },
+
+  getCountMobikersByStatus: async (req, res) => {
+    try {
+      const activos = await Mobiker.count({ where: { status: "Activo" } });
+      const inactivos = await Mobiker.count({
+        where: { status: "Inactivo" },
+      });
+      const retirados = await Mobiker.count({
+        where: { status: "Retirado" },
+      });
+
+      const mobikers = {
+        activos,
+        inactivos,
+        retirados,
+      };
+
+      res.json(mobikers);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
 };
