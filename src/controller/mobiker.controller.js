@@ -284,7 +284,7 @@ module.exports = {
 
       for (pedido of pedidos) {
         let mobiker = await Mobiker.findOne({
-          where: { [Op.and]: [{ id: pedido.mobikerId }, condition] },
+          where: { id: pedido.mobikerId },
           include: [
             {
               model: Distrito,
@@ -297,7 +297,7 @@ module.exports = {
 
         if (!mobikersRepetidos.includes(mobiker.id)) {
           let cantidadPedidos = await Pedido.sum("viajes", {
-            where: { mobikerId: mobiker.id },
+            where: { [Op.and]: [{ mobikerId: mobiker.id }, condition] },
           });
 
           if (cantidadPedidos > 0) {
