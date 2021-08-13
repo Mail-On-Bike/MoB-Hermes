@@ -408,6 +408,12 @@ module.exports = {
         },
       });
 
+      let clienteAsignado = await Cliente.findOne({
+        where: {
+          contacto: req.body.contactoRemitente,
+        },
+      });
+
       let pedido = {
         fecha: req.body.fecha,
         contactoRemitente: req.body.contactoRemitente,
@@ -435,6 +441,7 @@ module.exports = {
         compensado: req.body.compensado,
         facturado: req.body.facturado,
         distritoId: distritoPedido.id,
+        clienteId: clienteAsignado.id,
         mobikerId: mobiker.id,
         tipoDeEnvioId: tipoEnvio.id,
         modalidadId: modalidadPedido.id,
@@ -541,12 +548,6 @@ module.exports = {
         );
 
         // Asignar al Cliente
-        let clienteAsignado = await Cliente.findOne({
-          where: {
-            contacto: req.body.contactoRemitente,
-          },
-        });
-
         let cantidadPedidosDelCliente = await Pedido.sum("viajes", {
           where: {
             [Op.and]: [
