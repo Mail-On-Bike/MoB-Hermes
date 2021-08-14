@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "seed": "node src/seeders/index.js",
-    "assign": "node src/seeders/asignaciones/index.js"
+    "seed": "npx sequelize-cli db:seed:all"
   },
   "keywords": [
     "node.js",
@@ -35,6 +34,7 @@
     "sequelize": "^6.4.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.7",
+    "sequelize-cli": "^6.2.0"
   }
 }

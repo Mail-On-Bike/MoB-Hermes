@@ -2,24 +2,12 @@ const config = require("../config/db.config");
 
 const Sequelize = require("sequelize");
 // Conexión a la Base de Datos
-const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
-  host: config.HOST,
-  dialect: config.dialect,
-  port: 3306,
-  timezone: "-05:00",
-  define: {
-    charset: "utf8",
-    dialectOptions: {
-      collate: "utf8_general_ci",
-    },
-  },
-  pool: {
-    max: 10,
-    min: 0,
-    acquire: 30000,
-    idle: 10000,
-  },
-});
+const sequelize = new Sequelize(
+  config.database,
+  config.username,
+  config.password,
+  config
+);
 
 const db = {};
 
