@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "seed": "npx sequelize-cli db:seed:all"
+    "seed": "npx sequelize-cli db:seed:all",
+    "undo-seed": "npx sequelize-cli db:seed:undo:all",
+    "migrations": "npx sequelize-cli db:migrate",
+    "undo-migrations": "npx sequelize-cli db:migrate:undo:all"
   },
   "keywords": [
     "node.js",
