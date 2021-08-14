@@ -10,6 +10,7 @@ const Envio = db.envio;
 const FormaDePago = db.formaDePago;
 const Modalidad = db.modalidad;
 const Status = db.status;
+const Empresa = db.empresa;
 
 const Op = db.Sequelize.Op;
 
@@ -19,6 +20,7 @@ const getPagination = (page, size) => {
 
   return { limit, offset };
 };
+
 const getPagingData = (data, page, limit) => {
   const { count: totalPedidos, rows: pedidos } = data;
   const currentPage = page ? +page : 0;
@@ -77,6 +79,10 @@ module.exports = {
         },
       });
 
+      let empresa = await Empresa.findOne({
+        where: { empresa: req.body.razonComercial },
+      });
+
       if (distrito && comprobante && rolDelCliente && tipoDeCarga && pago) {
         try {
           let nuevoCliente = await Cliente.create(cliente);
@@ -87,6 +93,8 @@ module.exports = {
           await nuevoCliente.setTipoDeCarga(tipoDeCarga);
           await nuevoCliente.setFormaDePago(pago);
           await nuevoCliente.setTipoDeEnvio(tipoEnvio);
+
+          if (empresa) await nuevoCliente.setEmpresa(empresa);
 
           res.json({ message: "¡Se ha creado el Cliente con éxito!" });
         } catch (err) {
@@ -238,7 +246,7 @@ module.exports = {
       });
 
       if (!dataCliente) {
-        res.status(404).json({ msg: "No se ha encontrado el Cliente" });
+        res.status(404).json({ message: "No se ha encontrado el Cliente" });
       } else {
         res.json(dataCliente);
       }
@@ -391,6 +399,10 @@ module.exports = {
         },
       });
 
+      let empresa = await Empresa.findOne({
+        where: { empresa: req.body.razonComercial },
+      });
+
       let cliente = {
         contacto: req.body.contacto,
         razonSocial: req.body.razonSocial,
@@ -406,10 +418,11 @@ module.exports = {
         tipoDeCargaId: tipoDeCarga.id,
         formaDePagoId: pago.id,
         tipoDeEnvioId: tipoEnvio.id,
+        empresaId: empresa ? empresa.id : null,
       };
 
       let clienteActualizado = await Cliente.update(cliente, {
-        where: { id: id },
+        where: { id },
       });
 
       if (clienteActualizado) {
