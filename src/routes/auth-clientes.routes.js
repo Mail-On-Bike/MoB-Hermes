@@ -10,5 +10,27 @@ module.exports = function (app) {
     next();
   });
 
+  app.post(
+    "/create-user-cliente",
+    [
+      authJwt.verifyToken,
+      authJwt.isAdmin,
+      verifySignUp.checkDuplicateUsernameOrEmail,
+    ],
+    controller.createUserCliente
+  );
+
   app.post("/login-cliente", controller.signinCliente);
+
+  app.put(
+    "/update-user-cliente/:id",
+    [authJwt.verifyToken],
+    controller.updateUserCliente
+  );
+
+  app.post(
+    "/change-password/:id",
+    [authJwt.verifyToken],
+    controller.changePasswordUserCliente
+  );
 };

@@ -30,6 +30,10 @@ module.exports = (sequelize, Sequelize) => {
           },
         },
       },
+      telefono: {
+        type: Sequelize.STRING(15),
+        allowNull: true,
+      },
       password: {
         type: Sequelize.STRING,
         allowNull: false,

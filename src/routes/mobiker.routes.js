@@ -77,4 +77,11 @@ module.exports = (app) => {
     [authJwt.verifyToken, authJwt.isEquipoAdmin],
     controller.getMobikerConPedidos
   );
+
+  // Ruta para obtener conteo de MoBikers según su Status
+  app.get(
+    "/contar-mobikers",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getCountMobikersByStatus
+  );
 };

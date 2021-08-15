@@ -147,48 +147,58 @@ module.exports = {
           { fecha: { [Op.between]: [desde, hasta] } },
         ],
       };
+
+      // Array de control para que no se repitan los clientes
+      let clientesRepetidos = [];
+
       let clientesConPedidos = [];
       let clienteConPedidos = {};
 
-      const clientes = await Cliente.findAll({
-        order: [
-          ["biciEnvios", "DESC"],
-          ["razonComercial", "ASC"],
-        ],
-        include: [
-          {
-            model: Distrito,
-          },
-          {
-            model: Comprobante,
-          },
-          {
-            model: RolCliente,
-          },
-          {
-            model: Carga,
-          },
-          {
-            model: FormaDePago,
-          },
-          {
-            model: Envio,
-          },
-        ],
+      const pedidos = await Pedido.findAll({
+        where: condition,
+        order: [["id", "DESC"]],
       });
 
-      for (let cliente of clientes) {
-        let cantidadPedidos = await Pedido.count({
-          where: { [Op.and]: [{ clienteId: cliente.id }, condition] },
+      for (pedido of pedidos) {
+        let cliente = await Cliente.findOne({
+          where: { id: pedido.clienteId },
+          include: [
+            {
+              model: Distrito,
+            },
+            {
+              model: Comprobante,
+            },
+            {
+              model: RolCliente,
+            },
+            {
+              model: Carga,
+            },
+            {
+              model: FormaDePago,
+            },
+            {
+              model: Envio,
+            },
+          ],
         });
 
-        if (cantidadPedidos !== 0) {
-          clienteConPedidos = {
-            cliente,
-            cantidadPedidos: cantidadPedidos,
-          };
+        if (!clientesRepetidos.includes(cliente.id)) {
+          let cantidadPedidos = await Pedido.sum("viajes", {
+            where: { [Op.and]: [{ clienteId: cliente.id }, condition] },
+          });
 
-          clientesConPedidos.push(clienteConPedidos);
+          if (cantidadPedidos > 0) {
+            clienteConPedidos = {
+              cliente,
+              cantidadPedidos,
+            };
+
+            clientesConPedidos.push(clienteConPedidos);
+          }
+
+          clientesRepetidos.push(cliente.id);
         }
       }
 
@@ -454,6 +464,41 @@ module.exports = {
       res.json(cliente);
     } catch (err) {
       res.status(500).send({ message: err.message });
+    }
+  },
+
+  // Estadísticas del Cliente en el año actual
+  getActualStats: async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      const desde = `${new Date().getFullYear()}-01-01`;
+      const hasta = new Date().toISOString().split("T")[0];
+      const condition = {
+        [Op.and]: [
+          { clienteId: id },
+          { statusId: { [Op.between]: [1, 5] } },
+          { fecha: { [Op.between]: [desde, hasta] } },
+        ],
+      };
+
+      const pedidosCliente = await Pedido.sum("viajes", { where: condition });
+      const kilometrosCliente = await Pedido.sum("distancia", {
+        where: condition,
+      });
+      const co2Cliente = await Pedido.sum("CO2Ahorrado", { where: condition });
+      const ruidoCliente = await Pedido.sum("ruido", { where: condition });
+
+      statsCliente = {
+        pedidosCliente: +pedidosCliente,
+        kilometrosCliente: +kilometrosCliente.toFixed(1),
+        co2Cliente: +co2Cliente.toFixed(1),
+        ruidoCliente: +ruidoCliente.toFixed(1),
+      };
+
+      res.json(statsCliente);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
     }
   },
 };

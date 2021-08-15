@@ -271,33 +271,45 @@ module.exports = {
           { fecha: { [Op.between]: [desde, hasta] } },
         ],
       };
+      // Array de control para que no se repitan los MoBikers
+      let mobikersRepetidos = [];
+
       let mobikersConPedidos = [];
       let mobikerConPedidos = {};
 
-      const mobikers = await Mobiker.findAll({
-        order: [["fullName", "ASC"]],
-        include: [
-          {
-            model: Distrito,
-          },
-          {
-            model: Rango,
-          },
-        ],
+      const pedidos = await Pedido.findAll({
+        where: condition,
+        order: [["id", "DESC"]],
       });
 
-      for (let mobiker of mobikers) {
-        let cantidadPedidos = await Pedido.sum("viajes", {
-          where: { [Op.and]: [{ mobikerId: mobiker.id }, condition] },
+      for (pedido of pedidos) {
+        let mobiker = await Mobiker.findOne({
+          where: { id: pedido.mobikerId },
+          include: [
+            {
+              model: Distrito,
+            },
+            {
+              model: Rango,
+            },
+          ],
         });
 
-        if (cantidadPedidos > 0) {
-          mobikerConPedidos = {
-            mobiker,
-            cantidadPedidos: cantidadPedidos,
-          };
+        if (!mobikersRepetidos.includes(mobiker.id)) {
+          let cantidadPedidos = await Pedido.sum("viajes", {
+            where: { [Op.and]: [{ mobikerId: mobiker.id }, condition] },
+          });
 
-          mobikersConPedidos.push(mobikerConPedidos);
+          if (cantidadPedidos > 0) {
+            mobikerConPedidos = {
+              mobiker,
+              cantidadPedidos,
+            };
+
+            mobikersConPedidos.push(mobikerConPedidos);
+          }
+
+          mobikersRepetidos.push(mobiker.id);
         }
       }
 
@@ -392,6 +404,28 @@ module.exports = {
       res.json(mobiker);
     } catch (err) {
       res.status(500).send({ message: err.message });
+    }
+  },
+
+  getCountMobikersByStatus: async (req, res) => {
+    try {
+      const activos = await Mobiker.count({ where: { status: "Activo" } });
+      const inactivos = await Mobiker.count({
+        where: { status: "Inactivo" },
+      });
+      const retirados = await Mobiker.count({
+        where: { status: "Retirado" },
+      });
+
+      const mobikers = {
+        activos,
+        inactivos,
+        retirados,
+      };
+
+      res.json(mobikers);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
     }
   },
 };

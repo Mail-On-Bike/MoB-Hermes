@@ -13,7 +13,7 @@ module.exports = (app) => {
   // Ruta para crear nuevo Pedido
   app.post(
     "/pedidos/crear-nuevo-pedido",
-    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    [authJwt.verifyToken],
     controller.storagePedido
   );
 

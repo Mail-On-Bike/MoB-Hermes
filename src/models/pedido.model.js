@@ -13,7 +13,7 @@ module.exports = (sequelize, Sequelize) => {
         },
       },
       contactoRemitente: {
-        type: Sequelize.STRING(50),
+        type: Sequelize.STRING(100),
         allowNull: false,
       },
       empresaRemitente: {
@@ -37,7 +37,7 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: true,
       },
       contactoConsignado: {
-        type: Sequelize.STRING(50),
+        type: Sequelize.STRING(100),
         allowNull: false,
       },
       empresaConsignado: {
@@ -49,7 +49,7 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: false,
       },
       telefonoConsignado: {
-        type: Sequelize.STRING(35),
+        type: Sequelize.STRING(15),
         allowNull: false,
       },
       otroDatoConsignado: {

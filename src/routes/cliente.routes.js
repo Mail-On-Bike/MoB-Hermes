@@ -65,4 +65,11 @@ module.exports = (app) => {
     [authJwt.verifyToken, authJwt.isEquipoAdmin],
     controller.getClientesConPedidos
   );
+
+  // Ruta para obtener las estadísticas del Cliente en el presente año
+  app.get(
+    "/stats-actuales-cliente/:id",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getActualStats
+  );
 };
