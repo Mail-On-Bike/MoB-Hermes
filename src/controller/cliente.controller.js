@@ -136,6 +136,10 @@ module.exports = {
           {
             model: Envio,
           },
+          {
+            model: Empresa,
+            attributes: ["empresa"],
+          },
         ],
       });
       res.json(clientes);
@@ -189,6 +193,10 @@ module.exports = {
             {
               model: Envio,
             },
+            {
+              model: Empresa,
+              attributes: ["empresa"],
+            },
           ],
         });
 
@@ -241,6 +249,10 @@ module.exports = {
           },
           {
             model: Envio,
+          },
+          {
+            model: Empresa,
+            attributes: ["empresa"],
           },
         ],
       });
@@ -470,6 +482,10 @@ module.exports = {
           },
           {
             model: Envio,
+          },
+          {
+            model: Empresa,
+            attributes: ["empresa"],
           },
         ],
       });
