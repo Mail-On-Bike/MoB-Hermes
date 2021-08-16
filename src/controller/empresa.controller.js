@@ -57,7 +57,10 @@ module.exports = {
 
       let dataEmpresa = await Empresa.findByPk(id, {
         attributes: ["id", "empresa"],
-        include: { model: Cliente, attributes: ["contacto", "razonComercial"] },
+        include: {
+          model: Cliente,
+          attributes: ["id", "contacto", "razonComercial"],
+        },
       });
 
       if (dataEmpresa) {
