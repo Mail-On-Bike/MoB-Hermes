@@ -19,10 +19,14 @@ module.exports = {
             attributes: ["id", "razonComercial"],
           });
 
-          clienteAsociado.razonComercial = nuevaEmpresa.empresa;
           await clienteAsociado.setEmpresa(nuevaEmpresa);
 
-          await Cliente.update(clienteAsociado, { where: clienteAsociado.id });
+          await Cliente.update(
+            { razonComercial: nuevaEmpresa.dataValues.empresa },
+            {
+              where: { id: clienteAsociado.dataValues.id },
+            }
+          );
         }
 
         res.json({ message: "¡Se ha creado la Empresa con éxito!" });
@@ -95,10 +99,14 @@ module.exports = {
             attributes: ["id", "razonComercial"],
           });
 
-          clienteAsociado.razonComercial = empresaActualizada.empresa;
           await clienteAsociado.setEmpresa(empresaActualizada);
 
-          await Cliente.update(clienteAsociado, { where: clienteAsociado.id });
+          await Cliente.update(
+            { razonComercial: empresaActualizada.dataValues.empresa },
+            {
+              where: { id: clienteAsociado.id },
+            }
+          );
         }
 
         res.json({ message: "¡Se ha actualizado la Empresa con éxito!" });
