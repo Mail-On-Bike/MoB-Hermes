@@ -1,6 +1,7 @@
 const db = require("../models/index");
 const Empresa = db.empresa;
 const Cliente = db.cliente;
+const Distrito = db.distrito;
 
 const Op = db.Sequelize.Op;
 
@@ -64,6 +65,7 @@ module.exports = {
         include: {
           model: Cliente,
           attributes: ["id", "contacto", "razonComercial"],
+          include: { model: Distrito, attributes: ["distrito"] },
         },
       });
 
@@ -91,7 +93,15 @@ module.exports = {
       );
 
       if (empresaActualizada) {
-        await empresaActualizada.removeClientes();
+        let estaEmpresa = await Empresa.findOne({ where: { id } });
+
+        let clientesRetirar = await Cliente.findAll({
+          where: { empresaId: id },
+        });
+
+        for (let retirar of clientesRetirar) {
+          await retirar.setEmpresa(null);
+        }
 
         for (let cliente of clientesAsociados) {
           let clienteAsociado = await Cliente.findOne({
@@ -99,10 +109,10 @@ module.exports = {
             attributes: ["id", "razonComercial"],
           });
 
-          await clienteAsociado.setEmpresa(empresaActualizada);
+          await clienteAsociado.setEmpresa(estaEmpresa);
 
           await Cliente.update(
-            { razonComercial: empresaActualizada.dataValues.empresa },
+            { razonComercial: estaEmpresa.dataValues.empresa },
             {
               where: { id: clienteAsociado.id },
             }
