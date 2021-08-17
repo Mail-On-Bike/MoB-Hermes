@@ -390,6 +390,8 @@ module.exports = {
         },
       });
 
+      console.log(distritoPedido);
+
       let mobiker = await Mobiker.findOne({
         where: {
           fullName: req.body.mobiker,
@@ -410,7 +412,7 @@ module.exports = {
 
       let clienteAsignado = await Cliente.findOne({
         where: {
-          contacto: req.body.contactoRemitente,
+          razonComercial: req.body.empresaRemitente,
         },
       });
 
@@ -448,7 +450,7 @@ module.exports = {
         rolCliente: req.body.rolCliente,
         viajes: req.body.viajes,
         isRuteo: req.body.isRuteo,
-        ruteoId: req.body.ruteoId,
+        ruteoId: req.body.ruteoId ? req.body.ruteoId : null,
       };
 
       let pedidoActualizado = await Pedido.update(pedido, {
@@ -602,6 +604,7 @@ module.exports = {
       }
     } catch (error) {
       res.status(500).send({ message: error.message });
+      console.log(error);
     }
   },
 
