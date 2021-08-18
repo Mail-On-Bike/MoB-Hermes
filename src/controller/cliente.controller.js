@@ -275,8 +275,6 @@ module.exports = {
       let { desde, hasta, id, page, size } = req.query;
       let condition;
 
-      console.log(req.query);
-
       if (desde && hasta) {
         condition = {
           [Op.and]: [

@@ -146,4 +146,15 @@ module.exports = {
       console.log(`Error al buscar una Empresa: ${error.message}`);
     }
   },
+
+  // Obtener todos los Pedidos de Clientes y Empresas por Rango de fechas
+  getEmpresasConPedidos: async (req, res) => {
+    try {
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+      console.log(
+        `Error al obtener Empresas y Clientes con Pedidos: ${error.message}`
+      );
+    }
+  },
 };
