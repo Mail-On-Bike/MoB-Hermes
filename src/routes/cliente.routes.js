@@ -31,16 +31,17 @@ module.exports = (app) => {
     controller.getClienteById
   );
 
+  // Ruta para mostrar los Pedidos del Cliente con Paginación
   app.get(
     "/clientes/pedidos",
-    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    [authJwt.verifyToken],
     controller.getPedidosDelCliente
   );
 
-  // Ruta para mostrar los Pedidos Asignados al MoBiker
+  // Ruta para mostrar los Pedidos del Cliente por Id sin Paginación
   app.get(
     "/clientes/pedidos-del-cliente/:id",
-    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    [authJwt.verifyToken],
     controller.getPedidosDelClienteById
   );
 
@@ -63,5 +64,19 @@ module.exports = (app) => {
     "/clientes-con-pedidos",
     [authJwt.verifyToken, authJwt.isEquipoAdmin],
     controller.getClientesConPedidos
+  );
+
+  // Ruta para facturar clientes
+  app.get(
+    "/clientes-por-facturar",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getPedidosFacturacion
+  );
+
+  // Ruta para obtener las estadísticas del Cliente en el presente año
+  app.get(
+    "/stats-actuales-cliente/:id",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getActualStats
   );
 };

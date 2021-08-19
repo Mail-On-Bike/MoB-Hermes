@@ -2,23 +2,12 @@ const config = require("../config/db.config");
 
 const Sequelize = require("sequelize");
 // Conexión a la Base de Datos
-const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
-  host: config.HOST,
-  dialect: config.dialect,
-  port: 3306,
-  define: {
-    charset: "utf8mb4",
-    dialectOptions: {
-      collate: "utf8mb4_unicode_ci",
-    },
-  },
-  pool: {
-    max: 5,
-    min: 0,
-    // acquire: 60000,
-    idle: 10000,
-  },
-});
+const sequelize = new Sequelize(
+  config.database,
+  config.username,
+  config.password,
+  config
+);
 
 const db = {};
 
@@ -32,9 +21,17 @@ db.pedido = require("./pedido.model")(sequelize, Sequelize);
 db.mobiker = require("./mobiker.model")(sequelize, Sequelize);
 db.cliente = require("./cliente.model")(sequelize, Sequelize);
 db.destino = require("./destino.model")(sequelize, Sequelize);
+db.ruteo = require("./ruteo.model")(sequelize, Sequelize);
+
+db.userCliente = require("./user-cliente.model")(sequelize, Sequelize);
+db.userMobiker = require("./user-mobiker.model")(sequelize, Sequelize);
 
 // Tablas Auxiliares
 db.distrito = require("./tablas auxiliares/distrito.model")(
+  sequelize,
+  Sequelize
+);
+db.zonaCobertura = require("./tablas auxiliares/zonaCobertura.model")(
   sequelize,
   Sequelize
 );
@@ -64,7 +61,10 @@ db.envio = require("./tablas auxiliares/envio.model")(sequelize, Sequelize);
 db.bancos = require("./tablas auxiliares/bancos.model")(sequelize, Sequelize);
 db.status = require("./tablas auxiliares/status.model")(sequelize, Sequelize);
 db.empresa = require("./empresa.model")(sequelize, Sequelize);
-db.franquicia = require("./tablas auxiliares/franquicia.model")(sequelize, Sequelize);
+db.franquicia = require("./tablas auxiliares/franquicia.model")(
+  sequelize,
+  Sequelize
+);
 
 // Associations
 db.role.belongsToMany(db.user, {
@@ -78,7 +78,15 @@ db.user.belongsToMany(db.role, {
   otherKey: "roleId",
 });
 
+db.mobiker.hasMany(db.userMobiker);
+db.userMobiker.belongsTo(db.mobiker);
+db.role.hasOne(db.userMobiker);
+db.userMobiker.belongsTo(db.role);
 
+db.cliente.hasMany(db.userCliente);
+db.userCliente.belongsTo(db.cliente);
+db.role.hasOne(db.userCliente);
+db.userCliente.belongsTo(db.role);
 
 // Relaciones Auxiliares
 db.distrito.hasMany(db.codigoPostal, { as: "Código Postal" });
@@ -109,6 +117,9 @@ db.cliente.belongsTo(db.envio);
 
 db.user.hasMany(db.cliente);
 db.cliente.belongsTo(db.user);
+
+db.empresa.hasMany(db.cliente);
+db.cliente.belongsTo(db.empresa);
 // Fin relaciones de Clientes
 
 // Relaciones de MoBikers
@@ -140,6 +151,9 @@ db.pedido.belongsTo(db.status);
 
 db.user.hasMany(db.pedido);
 db.pedido.belongsTo(db.user);
+
+db.ruteo.hasMany(db.pedido);
+db.pedido.belongsTo(db.ruteo);
 // Fin relaciones de Pedidos
 
 db.ROLES = ["administrador", "operador", "auditor", "cliente", "mobiker"];

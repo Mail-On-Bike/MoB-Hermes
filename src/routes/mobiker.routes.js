@@ -24,6 +24,13 @@ module.exports = (app) => {
     controller.equipoMobiker
   );
 
+  // Ruta para filtrar los MoBikers por status
+  app.get(
+    "/mobikers/filter-mobiker",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.filterMobiker
+  );
+
   // Ruta para mostrar UN MoBiker
   app.get(
     "/mobikers/equipo-mobiker/:id",
@@ -69,5 +76,12 @@ module.exports = (app) => {
     "/mobikers-con-pedidos",
     [authJwt.verifyToken, authJwt.isEquipoAdmin],
     controller.getMobikerConPedidos
+  );
+
+  // Ruta para obtener conteo de MoBikers según su Status
+  app.get(
+    "/contar-mobikers",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getCountMobikersByStatus
   );
 };

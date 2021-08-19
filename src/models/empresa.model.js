@@ -11,6 +11,14 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.STRING(75),
         allowNull: true,
       },
+      ruc: {
+        type: Sequelize.STRING(11),
+        allowNull: true,
+      },
+      comprobante: {
+        type: Sequelize.STRING(25),
+        allowNull: true,
+      },
     },
     {
       tableName: "empresas",

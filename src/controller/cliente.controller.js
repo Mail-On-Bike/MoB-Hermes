@@ -10,6 +10,7 @@ const Envio = db.envio;
 const FormaDePago = db.formaDePago;
 const Modalidad = db.modalidad;
 const Status = db.status;
+const Empresa = db.empresa;
 
 const Op = db.Sequelize.Op;
 
@@ -19,6 +20,7 @@ const getPagination = (page, size) => {
 
   return { limit, offset };
 };
+
 const getPagingData = (data, page, limit) => {
   const { count: totalPedidos, rows: pedidos } = data;
   const currentPage = page ? +page : 0;
@@ -77,6 +79,10 @@ module.exports = {
         },
       });
 
+      let empresa = await Empresa.findOne({
+        where: { empresa: req.body.razonComercial },
+      });
+
       if (distrito && comprobante && rolDelCliente && tipoDeCarga && pago) {
         try {
           let nuevoCliente = await Cliente.create(cliente);
@@ -87,6 +93,8 @@ module.exports = {
           await nuevoCliente.setTipoDeCarga(tipoDeCarga);
           await nuevoCliente.setFormaDePago(pago);
           await nuevoCliente.setTipoDeEnvio(tipoEnvio);
+
+          if (empresa) await nuevoCliente.setEmpresa(empresa);
 
           res.json({ message: "¡Se ha creado el Cliente con éxito!" });
         } catch (err) {
@@ -105,8 +113,8 @@ module.exports = {
     try {
       let clientes = await Cliente.findAll({
         order: [
+          ["biciEnvios", "DESC"],
           ["razonComercial", "ASC"],
-          ["biciEnvios", "ASC"],
         ],
         limit: 30,
         include: [
@@ -128,6 +136,10 @@ module.exports = {
           {
             model: Envio,
           },
+          {
+            model: Empresa,
+            attributes: ["empresa"],
+          },
         ],
       });
       res.json(clientes);
@@ -136,6 +148,7 @@ module.exports = {
     }
   },
 
+  // Obtener los Clientes que tengan Pedidos para Facturarlos en un rango de fechas
   getClientesConPedidos: async (req, res) => {
     try {
       const { desde, hasta } = req.query;
@@ -146,48 +159,71 @@ module.exports = {
           { fecha: { [Op.between]: [desde, hasta] } },
         ],
       };
+
+      // Array de control para que no se repitan los clientes
+      let clientesRepetidos = [];
+
       let clientesConPedidos = [];
       let clienteConPedidos = {};
 
-      const clientes = await Cliente.findAll({
-        order: [
-          ["razonComercial", "ASC"],
-          ["biciEnvios", "ASC"],
-        ],
-        include: [
-          {
-            model: Distrito,
-          },
-          {
-            model: Comprobante,
-          },
-          {
-            model: RolCliente,
-          },
-          {
-            model: Carga,
-          },
-          {
-            model: FormaDePago,
-          },
-          {
-            model: Envio,
-          },
-        ],
+      const pedidos = await Pedido.findAll({
+        where: condition,
+        order: [["id", "DESC"]],
       });
 
-      for (let cliente of clientes) {
-        let cantidadPedidos = await Pedido.count({
-          where: { [Op.and]: [{ clienteId: cliente.id }, condition] },
+      for (pedido of pedidos) {
+        let cliente = await Cliente.findOne({
+          where: { id: pedido.clienteId },
+          include: [
+            {
+              model: Distrito,
+            },
+            {
+              model: Comprobante,
+            },
+            {
+              model: RolCliente,
+            },
+            {
+              model: Carga,
+            },
+            {
+              model: FormaDePago,
+            },
+            {
+              model: Envio,
+            },
+            {
+              model: Empresa,
+              attributes: ["empresa"],
+            },
+          ],
         });
 
-        if (cantidadPedidos !== 0) {
-          clienteConPedidos = {
-            cliente,
-            cantidadPedidos: cantidadPedidos,
-          };
+        if (!clientesRepetidos.includes(cliente.razonComercial)) {
+          let contarPedidos = await Pedido.findAll({
+            where: condition,
+            include: {
+              model: Cliente,
+              where: { razonComercial: cliente.razonComercial },
+            },
+          });
 
-          clientesConPedidos.push(clienteConPedidos);
+          let cantidadPedidos = contarPedidos.reduce(
+            (acc, pedido) => acc + pedido.viajes,
+            0
+          );
+
+          if (cantidadPedidos > 0) {
+            clienteConPedidos = {
+              cliente,
+              cantidadPedidos,
+            };
+
+            clientesConPedidos.push(clienteConPedidos);
+          }
+
+          clientesRepetidos.push(cliente.razonComercial);
         }
       }
 
@@ -198,6 +234,7 @@ module.exports = {
     }
   },
 
+  // Obtener un Cliente por su Id
   getClienteById: async (req, res) => {
     try {
       const id = req.params.id;
@@ -222,11 +259,15 @@ module.exports = {
           {
             model: Envio,
           },
+          {
+            model: Empresa,
+            attributes: ["empresa"],
+          },
         ],
       });
 
       if (!dataCliente) {
-        res.status(404).json({ msg: "No se ha encontrado el Cliente" });
+        res.status(404).json({ message: "No se ha encontrado el Cliente" });
       } else {
         res.json(dataCliente);
       }
@@ -237,16 +278,28 @@ module.exports = {
     }
   },
 
+  // Obtener todos los Pedidos del Cliente por Id usando paginación. Rango de fechas es opcional
   getPedidosDelCliente: async (req, res) => {
     try {
       let { desde, hasta, id, page, size } = req.query;
-      const condition = {
-        [Op.and]: [
-          { clienteId: id },
-          { statusId: { [Op.between]: [1, 5] } },
-          { fecha: { [Op.between]: [desde, hasta] } },
-        ],
-      };
+      let condition;
+
+      if (desde && hasta) {
+        // Para Facturacion
+        condition = {
+          [Op.and]: [
+            { clienteId: id },
+            { statusId: { [Op.between]: [1, 6] } },
+            { fecha: { [Op.between]: [desde, hasta] } },
+          ],
+        };
+      } else {
+        // Para Painal
+        condition = {
+          [Op.and]: [{ clienteId: id }, { statusId: { [Op.between]: [1, 6] } }],
+        };
+      }
+
       const { limit, offset } = getPagination(page, size);
 
       let data = await Pedido.findAndCountAll({
@@ -286,6 +339,58 @@ module.exports = {
     }
   },
 
+  // Similar al getPedidosDelCliente pero exclusivamente para Facturacion
+  getPedidosFacturacion: async (req, res) => {
+    try {
+      let { desde, hasta, razonComercial, page, size } = req.query;
+      let condition = {
+        [Op.and]: [
+          { statusId: { [Op.between]: [1, 5] } },
+          { fecha: { [Op.between]: [desde, hasta] } },
+        ],
+      };
+
+      const { limit, offset } = getPagination(page, size);
+
+      let data = await Pedido.findAndCountAll({
+        order: [["id", "DESC"]],
+        where: condition,
+        limit,
+        offset,
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+            where: { razonComercial },
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
+      const pedidosDelCliente = getPagingData(data, page, limit);
+
+      res.json(pedidosDelCliente);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  // Obtener los Pedidos del Cliente por su Id
   getPedidosDelClienteById: async (req, res) => {
     try {
       const id = req.params.id;
@@ -325,6 +430,7 @@ module.exports = {
     }
   },
 
+  // Editar / Actualizar un Cliente
   updateCliente: async (req, res) => {
     try {
       const id = req.params.id;
@@ -365,6 +471,10 @@ module.exports = {
         },
       });
 
+      let empresa = await Empresa.findOne({
+        where: { empresa: req.body.razonComercial },
+      });
+
       let cliente = {
         contacto: req.body.contacto,
         razonSocial: req.body.razonSocial,
@@ -380,10 +490,11 @@ module.exports = {
         tipoDeCargaId: tipoDeCarga.id,
         formaDePagoId: pago.id,
         tipoDeEnvioId: tipoEnvio.id,
+        empresaId: empresa ? empresa.id : null,
       };
 
       let clienteActualizado = await Cliente.update(cliente, {
-        where: { id: id },
+        where: { id },
       });
 
       if (clienteActualizado) {
@@ -432,12 +543,51 @@ module.exports = {
           {
             model: Envio,
           },
+          {
+            model: Empresa,
+            attributes: ["empresa"],
+          },
         ],
       });
 
       res.json(cliente);
     } catch (err) {
       res.status(500).send({ message: err.message });
+    }
+  },
+
+  // Estadísticas del Cliente en el año actual
+  getActualStats: async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      const desde = `${new Date().getFullYear()}-01-01`;
+      const hasta = new Date().toISOString().split("T")[0];
+      const condition = {
+        [Op.and]: [
+          { clienteId: id },
+          { statusId: { [Op.between]: [1, 5] } },
+          { fecha: { [Op.between]: [desde, hasta] } },
+        ],
+      };
+
+      const pedidosCliente = await Pedido.sum("viajes", { where: condition });
+      const kilometrosCliente = await Pedido.sum("distancia", {
+        where: condition,
+      });
+      const co2Cliente = await Pedido.sum("CO2Ahorrado", { where: condition });
+      const ruidoCliente = await Pedido.sum("ruido", { where: condition });
+
+      statsCliente = {
+        pedidosCliente: +pedidosCliente,
+        kilometrosCliente: +kilometrosCliente.toFixed(1),
+        co2Cliente: +co2Cliente.toFixed(1),
+        ruidoCliente: +ruidoCliente.toFixed(1),
+      };
+
+      res.json(statsCliente);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
     }
   },
 };

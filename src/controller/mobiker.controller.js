@@ -87,7 +87,30 @@ module.exports = {
     try {
       let mobikers = await Mobiker.findAll({
         order: [["fullName", "ASC"]],
-        limit: 100,
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Rango,
+          },
+        ],
+      });
+
+      res.json(mobikers);
+    } catch (err) {
+      res.status(500).send({ message: err.message });
+    }
+  },
+
+  // Mostrar todos los MoBikers
+  filterMobiker: async (req, res) => {
+    try {
+      const { status } = req.query;
+
+      let mobikers = await Mobiker.findAll({
+        where: { status },
+        order: [["fullName", "ASC"]],
         include: [
           {
             model: Distrito,
@@ -237,43 +260,56 @@ module.exports = {
       res.status(500).send({ message: err.message });
     }
   },
+
   getMobikerConPedidos: async (req, res) => {
     try {
       const { desde, hasta } = req.query;
 
       const condition = {
         [Op.and]: [
-          { statusId: { [Op.between]: [4, 5] } },
+          { statusId: { [Op.between]: [2, 5] } },
           { fecha: { [Op.between]: [desde, hasta] } },
         ],
       };
+      // Array de control para que no se repitan los MoBikers
+      let mobikersRepetidos = [];
+
       let mobikersConPedidos = [];
       let mobikerConPedidos = {};
 
-      const mobikers = await Mobiker.findAll({
-        order: [["fullName", "ASC"]],
-        include: [
-          {
-            model: Distrito,
-          },
-          {
-            model: Rango,
-          },
-        ],
+      const pedidos = await Pedido.findAll({
+        where: condition,
+        order: [["id", "DESC"]],
       });
 
-      for (let mobiker of mobikers) {
-        let cantidadPedidos = await Pedido.count({
-          where: { [Op.and]: [{ mobikerId: mobiker.id }, condition] },
+      for (pedido of pedidos) {
+        let mobiker = await Mobiker.findOne({
+          where: { id: pedido.mobikerId },
+          include: [
+            {
+              model: Distrito,
+            },
+            {
+              model: Rango,
+            },
+          ],
         });
 
-        if (cantidadPedidos !== 0) {
-          mobikerConPedidos = {
-            mobiker,
-            cantidadPedidos: cantidadPedidos,
-          };
+        if (!mobikersRepetidos.includes(mobiker.id)) {
+          let cantidadPedidos = await Pedido.sum("viajes", {
+            where: { [Op.and]: [{ mobikerId: mobiker.id }, condition] },
+          });
 
-          mobikersConPedidos.push(mobikerConPedidos);
+          if (cantidadPedidos > 0) {
+            mobikerConPedidos = {
+              mobiker,
+              cantidadPedidos,
+            };
+
+            mobikersConPedidos.push(mobikerConPedidos);
+          }
+
+          mobikersRepetidos.push(mobiker.id);
         }
       }
 
@@ -368,6 +404,28 @@ module.exports = {
       res.json(mobiker);
     } catch (err) {
       res.status(500).send({ message: err.message });
+    }
+  },
+
+  getCountMobikersByStatus: async (req, res) => {
+    try {
+      const activos = await Mobiker.count({ where: { status: "Activo" } });
+      const inactivos = await Mobiker.count({
+        where: { status: "Inactivo" },
+      });
+      const retirados = await Mobiker.count({
+        where: { status: "Retirado" },
+      });
+
+      const mobikers = {
+        activos,
+        inactivos,
+        retirados,
+      };
+
+      res.json(mobikers);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
     }
   },
 };

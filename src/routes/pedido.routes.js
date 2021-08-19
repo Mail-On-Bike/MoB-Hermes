@@ -13,8 +13,15 @@ module.exports = (app) => {
   // Ruta para crear nuevo Pedido
   app.post(
     "/pedidos/crear-nuevo-pedido",
-    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    [authJwt.verifyToken],
     controller.storagePedido
+  );
+
+  // Ruta para crear nuevo id de Ruta
+  app.post(
+    "/pedidos/nueva-ruta",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.newRuteo
   );
 
   // Ruta para mostrar todos los Pedidos, filtrados por fecha
@@ -71,6 +78,33 @@ module.exports = (app) => {
     "/historial-pedidos",
     [authJwt.verifyToken, authJwt.isEquipoAdmin],
     controller.getHistorialPedidos
+  );
+
+  // Ruta para obtener los Pedidos con Transferencias por rango de fechas
+  app.get(
+    "/pedidos-transferencia",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getPedidosTransferencia
+  );
+
+  // Ruta para obtener los Pedidos con Recaudos por rango de fechas
+  app.get(
+    "/pedidos-recaudo",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getPedidosRecaudo
+  );
+
+  // Ruta para obtener los Pedidos por Ruteos en el rango de fechas
+  app.get(
+    "/ruteos-pedidos",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getPedidosByRuteo
+  );
+
+  app.get(
+    "/ruteo/:id",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getRutaById
   );
 
   // Ruta para procesar CSV y retornar un JSON

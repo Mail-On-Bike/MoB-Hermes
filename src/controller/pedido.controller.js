@@ -7,6 +7,9 @@ const Envio = db.envio;
 const Modalidad = db.modalidad;
 const Status = db.status;
 const User = db.user;
+const Rango = db.rango;
+
+const Ruteo = db.ruteo;
 
 const Op = db.Sequelize.Op;
 
@@ -55,11 +58,13 @@ module.exports = {
         facturado: req.body.facturado,
         rolCliente: req.body.rolCliente,
         viajes: req.body.viajes,
+        isRuteo: req.body.isRuteo,
+        ruteo: req.body.ruteo,
       };
 
       let distritoPedido = await Distrito.findOne({
         where: {
-          distrito: req.body.distritoConsignado,
+          distrito: { [Op.like]: `%${req.body.distritoConsignado}%` },
         },
       });
 
@@ -116,6 +121,10 @@ module.exports = {
           await nuevoPedido.setStatus(estadoPedido);
           await nuevoPedido.setUser(operador);
 
+          if (pedido.isRuteo === true) {
+            await nuevoPedido.setRuteo(pedido.ruteo);
+          }
+
           res
             .status(200)
             .json({ message: "¡Se ha creado el Pedido con éxito!" });
@@ -157,12 +166,52 @@ module.exports = {
             },
           });
 
+          // Actualizando el Nivel MoB
+          const mobikerConNuevoRango = await Mobiker.findOne({
+            where: { id: mobiker.id },
+            include: [
+              {
+                model: Rango,
+              },
+            ],
+          });
+
+          let nuevoRango = mobikerConNuevoRango.rango.id;
+
+          // Caso para subir a MoBiker
+          if (
+            cantidadPedidosDelMoBiker >= 100 &&
+            mobikerConNuevoRango.rango.id !== 5 &&
+            mobikerConNuevoRango.rango.id !== 6
+          ) {
+            nuevoRango = 2;
+          }
+
+          // Caso para subir a MoBiker Pro
+          if (
+            cantidadPedidosDelMoBiker >= 500 &&
+            mobikerConNuevoRango.rango.id !== 5 &&
+            mobikerConNuevoRango.rango.id !== 6
+          ) {
+            nuevoRango = 3;
+          }
+
+          // Caso para subir a MoBiker Élite
+          if (
+            cantidadPedidosDelMoBiker >= 1000 &&
+            mobikerConNuevoRango.rango.id !== 5 &&
+            mobikerConNuevoRango.rango.id !== 6
+          ) {
+            nuevoRango = 4;
+          }
+
           await Mobiker.update(
             {
               biciEnvios: cantidadPedidosDelMoBiker,
               kilometros: kilometrosAsignadosMobiker,
               CO2Ahorrado: CO2AsignadosMobiker,
               ruido: ruidoAsignadosMobiker,
+              rangoId: nuevoRango,
             },
             {
               where: { id: mobiker.id },
@@ -230,11 +279,24 @@ module.exports = {
     }
   },
 
+  // Creando nuevo Ruteo en la Tabla Ruteo
+  newRuteo: async (req, res) => {
+    try {
+      const ruta = await Ruteo.create();
+
+      res.json(ruta);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+
   // Mostrar todos los Pedidos por la fecha
   indexPedidos: async (req, res) => {
     try {
       const { page, size, fecha } = req.query;
-      let condition = { fecha: { [Op.startsWith]: `${fecha}` } };
+      let condition = {
+        fecha: { [Op.startsWith]: `${fecha}` },
+      };
       const { limit, offset } = getPagination(page, size);
 
       const data = await Pedido.findAndCountAll({
@@ -324,9 +386,11 @@ module.exports = {
 
       let distritoPedido = await Distrito.findOne({
         where: {
-          distrito: req.body.distritoConsignado,
+          distrito: { [Op.like]: `%${req.body.distritoConsignado}%` },
         },
       });
+
+      console.log(distritoPedido);
 
       let mobiker = await Mobiker.findOne({
         where: {
@@ -343,6 +407,12 @@ module.exports = {
       let modalidadPedido = await Modalidad.findOne({
         where: {
           tipo: req.body.modalidad,
+        },
+      });
+
+      let clienteAsignado = await Cliente.findOne({
+        where: {
+          razonComercial: req.body.empresaRemitente,
         },
       });
 
@@ -373,11 +443,14 @@ module.exports = {
         compensado: req.body.compensado,
         facturado: req.body.facturado,
         distritoId: distritoPedido.id,
+        clienteId: clienteAsignado.id,
         mobikerId: mobiker.id,
         tipoDeEnvioId: tipoEnvio.id,
         modalidadId: modalidadPedido.id,
         rolCliente: req.body.rolCliente,
         viajes: req.body.viajes,
+        isRuteo: req.body.isRuteo,
+        ruteoId: req.body.ruteoId ? req.body.ruteoId : null,
       };
 
       let pedidoActualizado = await Pedido.update(pedido, {
@@ -424,12 +497,52 @@ module.exports = {
           },
         });
 
+        // Actualizando el Nivel MoB
+        const mobikerConNuevoRango = await Mobiker.findOne({
+          where: { id: mobiker.id },
+          include: [
+            {
+              model: Rango,
+            },
+          ],
+        });
+
+        let nuevoRango = mobikerConNuevoRango.rango.id;
+
+        // Caso para subir a MoBiker
+        if (
+          cantidadPedidosDelMoBiker >= 100 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 2;
+        }
+
+        // Caso para subir a MoBiker Pro
+        if (
+          cantidadPedidosDelMoBiker >= 500 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 3;
+        }
+
+        // Caso para subir a MoBiker Élite
+        if (
+          cantidadPedidosDelMoBiker >= 1000 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 4;
+        }
+
         await Mobiker.update(
           {
             biciEnvios: cantidadPedidosDelMoBiker,
             kilometros: kilometrosAsignadosMobiker,
             CO2Ahorrado: CO2AsignadosMobiker,
             ruido: ruidoAsignadosMobiker,
+            rangoId: nuevoRango,
           },
           {
             where: { id: mobiker.id },
@@ -437,12 +550,6 @@ module.exports = {
         );
 
         // Asignar al Cliente
-        let clienteAsignado = await Cliente.findOne({
-          where: {
-            contacto: req.body.contactoRemitente,
-          },
-        });
-
         let cantidadPedidosDelCliente = await Pedido.sum("viajes", {
           where: {
             [Op.and]: [
@@ -497,6 +604,7 @@ module.exports = {
       }
     } catch (error) {
       res.status(500).send({ message: error.message });
+      console.log(error);
     }
   },
 
@@ -521,8 +629,37 @@ module.exports = {
         where: { id: id },
       });
 
+      let sendPedido = await Pedido.findOne({
+        where: { id },
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
       if (pedidoActualizado) {
-        res.json({ message: "¡Se ha asignado el Pedido con éxito!" });
+        res.json({
+          message: "¡Se ha asignado el Pedido con éxito!",
+          sendPedido,
+        });
 
         // Asignar al MoBiker
         let cantidadPedidosDelMoBiker = await Pedido.sum("viajes", {
@@ -561,12 +698,52 @@ module.exports = {
           },
         });
 
+        // Actualizando el Nivel MoB
+        const mobikerConNuevoRango = await Mobiker.findOne({
+          where: { id: mobiker.id },
+          include: [
+            {
+              model: Rango,
+            },
+          ],
+        });
+
+        let nuevoRango = mobikerConNuevoRango.rango.id;
+
+        // Caso para subir a MoBiker
+        if (
+          cantidadPedidosDelMoBiker >= 100 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 2;
+        }
+
+        // Caso para subir a MoBiker Pro
+        if (
+          cantidadPedidosDelMoBiker >= 500 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 3;
+        }
+
+        // Caso para subir a MoBiker Élite
+        if (
+          cantidadPedidosDelMoBiker >= 1000 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 4;
+        }
+
         await Mobiker.update(
           {
             biciEnvios: cantidadPedidosDelMoBiker,
             kilometros: kilometrosAsignadosMobiker,
             CO2Ahorrado: CO2AsignadosMobiker,
             ruido: ruidoAsignadosMobiker,
+            rangoId: nuevoRango,
           },
           {
             where: { id: mobiker.id },
@@ -597,6 +774,8 @@ module.exports = {
       let estadoCambiado = {
         comentario: req.body.comentario,
         statusId: req.body.status,
+        isRuteo: req.body.isRuteo,
+        ruteoId: req.body.ruteoId,
       };
 
       let pedidoActualizado = await Pedido.update(estadoCambiado, {
@@ -645,12 +824,52 @@ module.exports = {
           },
         });
 
+        // Actualizando el Nivel MoB
+        const mobikerConNuevoRango = await Mobiker.findOne({
+          where: { id: mobiker.id },
+          include: [
+            {
+              model: Rango,
+            },
+          ],
+        });
+
+        let nuevoRango = mobikerConNuevoRango.rango.id;
+
+        // Caso para subir a MoBiker
+        if (
+          cantidadPedidosDelMoBiker >= 100 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 2;
+        }
+
+        // Caso para subir a MoBiker Pro
+        if (
+          cantidadPedidosDelMoBiker >= 500 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 3;
+        }
+
+        // Caso para subir a MoBiker Élite
+        if (
+          cantidadPedidosDelMoBiker >= 1000 &&
+          mobikerConNuevoRango.rango.id !== 5 &&
+          mobikerConNuevoRango.rango.id !== 6
+        ) {
+          nuevoRango = 4;
+        }
+
         await Mobiker.update(
           {
             biciEnvios: cantidadPedidosDelMoBiker,
             kilometros: kilometrosAsignadosMobiker,
             CO2Ahorrado: CO2AsignadosMobiker,
             ruido: ruidoAsignadosMobiker,
+            rangoId: nuevoRango,
           },
           {
             where: { id: mobiker.id },
@@ -678,8 +897,55 @@ module.exports = {
       if (mob) {
         const pedido = await Pedido.findAll({
           where: {
-            mobikerId: mob.id,
+            [Op.or]: [
+              { id: { [Op.like]: `%${query}%` } },
+              { contactoRemitente: { [Op.like]: `%${query}%` } },
+              { empresaRemitente: { [Op.like]: `%${query}%` } },
+              { contactoConsignado: { [Op.like]: `%${query}%` } },
+              { empresaConsignado: { [Op.like]: `%${query}%` } },
+              { mobikerId: mob.id },
+            ],
           },
+          order: [["id", "DESC"]],
+          limit: 200,
+          include: [
+            {
+              model: Distrito,
+            },
+            {
+              model: Mobiker,
+              attributes: ["fullName"],
+            },
+            {
+              model: Cliente,
+              attributes: ["contacto", "razonComercial"],
+            },
+            {
+              model: Envio,
+            },
+            {
+              model: Modalidad,
+            },
+            {
+              model: Status,
+            },
+          ],
+        });
+
+        res.json(pedido);
+      } else {
+        const pedido = await Pedido.findAll({
+          where: {
+            [Op.or]: [
+              { id: { [Op.like]: `%${query}%` } },
+              { contactoRemitente: { [Op.like]: `%${query}%` } },
+              { empresaRemitente: { [Op.like]: `%${query}%` } },
+              { contactoConsignado: { [Op.like]: `%${query}%` } },
+              { empresaConsignado: { [Op.like]: `%${query}%` } },
+            ],
+          },
+          order: [["id", "DESC"]],
+          limit: 20,
           include: [
             {
               model: Distrito,
@@ -706,43 +972,6 @@ module.exports = {
 
         res.json(pedido);
       }
-
-      const pedido = await Pedido.findAll({
-        where: {
-          [Op.or]: [
-            { id: { [Op.like]: `%${query}%` } },
-            { contactoRemitente: { [Op.like]: `%${query}%` } },
-            { empresaRemitente: { [Op.like]: `%${query}%` } },
-            { contactoConsignado: { [Op.like]: `%${query}%` } },
-            { empresaConsignado: { [Op.like]: `%${query}%` } },
-          ],
-        },
-        limit: 20,
-        include: [
-          {
-            model: Distrito,
-          },
-          {
-            model: Mobiker,
-            attributes: ["fullName"],
-          },
-          {
-            model: Cliente,
-            attributes: ["contacto", "razonComercial"],
-          },
-          {
-            model: Envio,
-          },
-          {
-            model: Modalidad,
-          },
-          {
-            model: Status,
-          },
-        ],
-      });
-
-      res.json(pedido);
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -750,11 +979,20 @@ module.exports = {
 
   searchPedidoProgramados: async (req, res) => {
     try {
-      let { desde, hasta } = req.query;
-      let condition = { fecha: { [Op.between]: [desde, hasta] } };
+      let { desde, hasta, page, size } = req.query;
+      let condition = {
+        [Op.and]: [
+          { fecha: { [Op.between]: [`%${desde}%`, `%${hasta}%`] } },
+          { statusId: { [Op.between]: [1, 2] } },
+        ],
+      };
+      const { limit, offset } = getPagination(page, size);
 
-      let pedido = await Pedido.findAll({
+      let data = await Pedido.findAndCountAll({
         where: condition,
+        limit,
+        offset,
+        order: [["id", "DESC"]],
         include: [
           {
             model: Distrito,
@@ -779,12 +1017,15 @@ module.exports = {
         ],
       });
 
-      res.json(pedido);
+      const pedidos = getPagingData(data, page, limit);
+
+      res.json(pedidos);
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
   },
 
+  // Mostrar todo el historial de Pedidos
   getHistorialPedidos: async (req, res) => {
     try {
       let { desde, hasta, page, size } = req.query;
@@ -823,6 +1064,225 @@ module.exports = {
       const pedidos = getPagingData(data, page, limit);
 
       res.json(pedidos);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  // Mostrar Pedidos con Transferencia
+  getPedidosTransferencia: async (req, res) => {
+    try {
+      let { desde, hasta, page, size } = req.query;
+      let condition = {
+        [Op.and]: [
+          { fecha: { [Op.between]: [`%${desde}%`, `%${hasta}%`] } },
+          { formaPago: "Transferencia" },
+          { statusId: { [Op.ne]: 6 } },
+        ],
+      };
+      const { limit, offset } = getPagination(page, size);
+
+      const data = await Pedido.findAndCountAll({
+        where: condition,
+        limit,
+        offset,
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
+      const pedidos = getPagingData(data, page, limit);
+
+      res.json(pedidos);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  // Mostrar Pedidos con Recaudos
+  getPedidosRecaudo: async (req, res) => {
+    try {
+      const pagosExcluidos = [
+        "Efectivo en Destino",
+        "Efectivo en Origen",
+        "Sin Cargo x Canje",
+        "Sin Cargo x Compensación",
+        "Sin Cargo x Cortesía",
+        "Sin Cargo x Envío Propio",
+        "Sin Cargo x Error MoB",
+      ];
+      let { desde, hasta, page, size } = req.query;
+      let condition = {
+        [Op.and]: [
+          { fecha: { [Op.between]: [`%${desde}%`, `%${hasta}%`] } },
+          { formaPago: { [Op.notIn]: pagosExcluidos } },
+          { statusId: { [Op.ne]: 6 } },
+          { recaudo: { [Op.gt]: 0 } },
+        ],
+      };
+      const { limit, offset } = getPagination(page, size);
+
+      const data = await Pedido.findAndCountAll({
+        where: condition,
+        limit,
+        offset,
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
+      const pedidos = getPagingData(data, page, limit);
+
+      res.json(pedidos);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  // Mostrar todos los Pedidos dentro de la Ruta
+  getPedidosByRuteo: async (req, res) => {
+    try {
+      let { desde, hasta, page, size } = req.query;
+      let condition = {
+        fecha: { [Op.between]: [`%${desde}%`, `%${hasta}%`] },
+      };
+      const { limit, offset } = getPagination(page, size);
+
+      let ruteoConPedidos = [];
+      let rutaConPedido = {};
+
+      const ruteos = await Ruteo.findAll();
+
+      for (let ruta of ruteos) {
+        let pedidosRuta = await Pedido.findAll({
+          where: { [Op.and]: [{ ruteoId: ruta.id }, condition] },
+          order: [["id", "DESC"]],
+          include: [
+            {
+              model: Distrito,
+            },
+            {
+              model: Mobiker,
+              attributes: ["fullName"],
+            },
+            {
+              model: Cliente,
+              attributes: ["contacto", "razonComercial"],
+            },
+            {
+              model: Envio,
+            },
+            {
+              model: Modalidad,
+            },
+            {
+              model: Status,
+            },
+          ],
+        });
+
+        if (pedidosRuta.length > 0) {
+          rutaConPedido = {
+            ruta,
+            pedidosRuta,
+          };
+
+          ruteoConPedidos.push(rutaConPedido);
+        }
+      }
+
+      const data = {
+        count: ruteoConPedidos.length,
+        rows: ruteoConPedidos,
+      };
+
+      const pedidos = getPagingData(data, page, limit);
+
+      res.json(pedidos);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  getRutaById: async (req, res) => {
+    try {
+      const id = req.params.id;
+
+      const ruta = await Ruteo.findByPk(id);
+
+      const pedidosRuta = await Pedido.findAll({
+        where: { ruteoId: ruta.id },
+        order: [["id", "DESC"]],
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
+      let rutaConPedido = {
+        ruta,
+        pedidosRuta,
+      };
+
+      res.json(rutaConPedido);
     } catch (error) {
       res.status(500).send({ message: error.message });
     }

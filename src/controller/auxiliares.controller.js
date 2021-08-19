@@ -1,6 +1,7 @@
 const db = require("../models/index");
 const Role = db.role;
 const Distrito = db.distrito;
+const ZonaCobertura = db.zonaCobertura;
 const Comprobante = db.comprobante;
 const Carga = db.carga;
 const Modalidad = db.modalidad;
@@ -12,58 +13,65 @@ const Bancos = db.bancos;
 const Status = db.status;
 
 module.exports = {
-	sendRolesUsuarios: async (req, res) => {
-		sendRoles = await Role.findAll();
-		res.send(sendRoles);
-	},
+  sendRolesUsuarios: async (req, res) => {
+    const sendRoles = await Role.findAll();
+    res.send(sendRoles);
+  },
 
-	sendDistritos: async (req, res) => {
-		distritos = await Distrito.findAll();
-		res.send(distritos);
-	},
+  sendDistritos: async (req, res) => {
+    const distritos = await Distrito.findAll({ order: [["distrito", "ASC"]] });
+    res.send(distritos);
+  },
 
-	sendTiposComprobantes: async (req, res) => {
-		comprobantes = await Comprobante.findAll();
-		res.send(comprobantes);
-	},
+  sendZonaCobertura: async (req, res) => {
+    const zonaCobertura = await ZonaCobertura.findAll({
+      order: [["distrito", "ASC"]],
+    });
+    res.send(zonaCobertura);
+  },
 
-	sendTipoCarga: async (req, res) => {
-		cargas = await Carga.findAll();
-		res.send(cargas);
-	},
+  sendTiposComprobantes: async (req, res) => {
+    const comprobantes = await Comprobante.findAll();
+    res.send(comprobantes);
+  },
 
-	sendTipoModalidad: async (req, res) => {
-		modalidad = await Modalidad.findAll();
-		res.send(modalidad);
-	},
+  sendTipoCarga: async (req, res) => {
+    const cargas = await Carga.findAll();
+    res.send(cargas);
+  },
 
-	sendFormaPago: async (req, res) => {
-		pagos = await FormaDePago.findAll();
-		res.send(pagos);
-	},
+  sendTipoModalidad: async (req, res) => {
+    const modalidad = await Modalidad.findAll();
+    res.send(modalidad);
+  },
 
-	sendRolCliente: async (req, res) => {
-		rolesCliente = await RolCliente.findAll();
-		res.send(rolesCliente);
-	},
+  sendFormaPago: async (req, res) => {
+    const pagos = await FormaDePago.findAll();
+    res.send(pagos);
+  },
 
-	sendTipoEnvio: async (req, res) => {
-		envios = await Envio.findAll();
-		res.send(envios);
-	},
+  sendRolCliente: async (req, res) => {
+    const rolesCliente = await RolCliente.findAll();
+    res.send(rolesCliente);
+  },
 
-	sendRangosMoB: async (req, res) => {
-		rangos = await Rango.findAll();
-		res.send(rangos);
-	},
+  sendTipoEnvio: async (req, res) => {
+    const envios = await Envio.findAll();
+    res.send(envios);
+  },
 
-	sendBancos: async (req, res) => {
-		bancos = await Bancos.findAll();
-		res.send(bancos);
-	},
+  sendRangosMoB: async (req, res) => {
+    const rangos = await Rango.findAll();
+    res.send(rangos);
+  },
 
-	sendStatus: async (req, res) => {
-		estados = await Status.findAll();
-		res.send(estados);
-	},
+  sendBancos: async (req, res) => {
+    const bancos = await Bancos.findAll();
+    res.send(bancos);
+  },
+
+  sendStatus: async (req, res) => {
+    const estados = await Status.findAll();
+    res.send(estados);
+  },
 };
