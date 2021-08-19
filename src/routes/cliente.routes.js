@@ -66,6 +66,13 @@ module.exports = (app) => {
     controller.getClientesConPedidos
   );
 
+  // Ruta para facturar clientes
+  app.get(
+    "/clientes-por-facturar",
+    [authJwt.verifyToken, authJwt.isEquipoAdmin],
+    controller.getPedidosFacturacion
+  );
+
   // Ruta para obtener las estadísticas del Cliente en el presente año
   app.get(
     "/stats-actuales-cliente/:id",

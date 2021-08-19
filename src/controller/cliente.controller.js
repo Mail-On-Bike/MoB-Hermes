@@ -200,10 +200,19 @@ module.exports = {
           ],
         });
 
-        if (!clientesRepetidos.includes(cliente.id)) {
-          let cantidadPedidos = await Pedido.sum("viajes", {
-            where: { [Op.and]: [{ clienteId: cliente.id }, condition] },
+        if (!clientesRepetidos.includes(cliente.razonComercial)) {
+          let contarPedidos = await Pedido.findAll({
+            where: condition,
+            include: {
+              model: Cliente,
+              where: { razonComercial: cliente.razonComercial },
+            },
           });
+
+          let cantidadPedidos = contarPedidos.reduce(
+            (acc, pedido) => acc + pedido.viajes,
+            0
+          );
 
           if (cantidadPedidos > 0) {
             clienteConPedidos = {
@@ -214,7 +223,7 @@ module.exports = {
             clientesConPedidos.push(clienteConPedidos);
           }
 
-          clientesRepetidos.push(cliente.id);
+          clientesRepetidos.push(cliente.razonComercial);
         }
       }
 
@@ -276,6 +285,7 @@ module.exports = {
       let condition;
 
       if (desde && hasta) {
+        // Para Facturacion
         condition = {
           [Op.and]: [
             { clienteId: id },
@@ -284,6 +294,7 @@ module.exports = {
           ],
         };
       } else {
+        // Para Painal
         condition = {
           [Op.and]: [{ clienteId: id }, { statusId: { [Op.between]: [1, 6] } }],
         };
@@ -325,6 +336,57 @@ module.exports = {
       res.json(pedidosDelMobiker);
     } catch (err) {
       res.status(500).send({ message: err.message });
+    }
+  },
+
+  // Similar al getPedidosDelCliente pero exclusivamente para Facturacion
+  getPedidosFacturacion: async (req, res) => {
+    try {
+      let { desde, hasta, razonComercial, page, size } = req.query;
+      let condition = {
+        [Op.and]: [
+          { statusId: { [Op.between]: [1, 5] } },
+          { fecha: { [Op.between]: [desde, hasta] } },
+        ],
+      };
+
+      const { limit, offset } = getPagination(page, size);
+
+      let data = await Pedido.findAndCountAll({
+        order: [["id", "DESC"]],
+        where: condition,
+        limit,
+        offset,
+        include: [
+          {
+            model: Distrito,
+          },
+          {
+            model: Mobiker,
+            attributes: ["fullName"],
+          },
+          {
+            model: Cliente,
+            attributes: ["contacto", "razonComercial"],
+            where: { razonComercial },
+          },
+          {
+            model: Envio,
+          },
+          {
+            model: Modalidad,
+          },
+          {
+            model: Status,
+          },
+        ],
+      });
+
+      const pedidosDelCliente = getPagingData(data, page, limit);
+
+      res.json(pedidosDelCliente);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
     }
   },
 
