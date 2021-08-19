@@ -11,7 +11,11 @@ module.exports = {
     try {
       let clientesAsociados = [...req.body.clientes];
 
-      const nuevaEmpresa = await Empresa.create({ empresa: req.body.empresa });
+      const nuevaEmpresa = await Empresa.create({
+        empresa: req.body.empresa,
+        ruc: req.body.ruc,
+        comprobante: req.body.comprobante,
+      });
 
       if (nuevaEmpresa) {
         for (let cliente of clientesAsociados) {
@@ -61,7 +65,7 @@ module.exports = {
       const id = req.params.id;
 
       let dataEmpresa = await Empresa.findByPk(id, {
-        attributes: ["id", "empresa"],
+        attributes: ["id", "empresa", "ruc", "comprobante"],
         include: {
           model: Cliente,
           attributes: ["id", "contacto", "razonComercial"],
@@ -88,7 +92,11 @@ module.exports = {
       let clientesAsociados = [...req.body.clientes];
 
       let empresaActualizada = await Empresa.update(
-        { empresa: req.body.empresa },
+        {
+          empresa: req.body.empresa,
+          ruc: req.body.ruc,
+          comprobante: req.body.comprobante,
+        },
         { where: { id } }
       );
 
