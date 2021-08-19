@@ -9,7 +9,8 @@
     "seed": "npx sequelize-cli db:seed:all",
     "undo-seed": "npx sequelize-cli db:seed:undo:all",
     "migrations": "npx sequelize-cli db:migrate",
-    "undo-migrations": "npx sequelize-cli db:migrate:undo:all"
+    "undo-migrations": "npx sequelize-cli db:migrate:undo:all",
+    "custom-migrations": "node src/database/custom/index.js"
   },
   "keywords": [
     "node.js",
