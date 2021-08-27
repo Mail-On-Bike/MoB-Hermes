@@ -48,7 +48,7 @@ module.exports = {
       const empresas = await Empresa.findAll({
         order: [["empresa", "ASC"]],
         limit: 30,
-        attributes: ["id", "empresa"],
+        attributes: ["id", "empresa", "ruc", 'comprobante'],
         include: { model: Cliente, attributes: ["contacto", "razonComercial"] },
       });
 
@@ -144,7 +144,7 @@ module.exports = {
         order: [["empresa", "ASC"]],
         where: { empresa: { [Op.like]: `%${query}%` } },
         limit: 10,
-        attributes: ["id", "empresa"],
+        attributes: ["id", "empresa", "ruc", "comprobante"],
         include: { model: Cliente, attributes: ["contacto", "razonComercial"] },
       });
 
