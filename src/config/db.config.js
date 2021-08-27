@@ -8,6 +8,7 @@ module.exports = {
   dialect: process.env.DB_DIALECT,
   port: 3306,
   timezone: "-05:00",
+  dateStrings: true,
   define: {
     charset: "utf8",
     dialectOptions: {

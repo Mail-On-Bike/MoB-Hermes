@@ -85,10 +85,25 @@ module.exports = {
         },
       });
 
+      // let clienteAsignado = await Cliente.findOne({
+      //   where: {
+      //     razonComercial: req.body.empresaRemitente,
+      //   },
+      // });
+
       let clienteAsignado = await Cliente.findOne({
         where: {
-          razonComercial: req.body.empresaRemitente,
+          [Op.or]: [
+            {
+              [Op.and]: [
+                { razonComercial: req.body.empresaRemitente },
+                { contacto: req.body.contactoRemitente },
+              ],
+            },
+            { razonComercial: req.body.empresaRemitente },
+          ],
         },
+        attributes: ["id"],
       });
 
       let estadoPedido = await Status.findOne({
@@ -390,8 +405,6 @@ module.exports = {
         },
       });
 
-      console.log(distritoPedido);
-
       let mobiker = await Mobiker.findOne({
         where: {
           fullName: req.body.mobiker,
@@ -410,10 +423,25 @@ module.exports = {
         },
       });
 
+      // let clienteAsignado = await Cliente.findOne({
+      //   where: {
+      //     razonComercial: req.body.empresaRemitente,
+      //   },
+      // });
+
       let clienteAsignado = await Cliente.findOne({
         where: {
-          razonComercial: req.body.empresaRemitente,
+          [Op.or]: [
+            {
+              [Op.and]: [
+                { razonComercial: req.body.empresaRemitente },
+                { contacto: req.body.contactoRemitente },
+              ],
+            },
+            { razonComercial: req.body.empresaRemitente },
+          ],
         },
+        attributes: ["id"],
       });
 
       let pedido = {
