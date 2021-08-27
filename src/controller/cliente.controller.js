@@ -561,11 +561,22 @@ module.exports = {
     try {
       const id = req.params.id;
 
+      const empresaCliente = await Cliente.findByPk(id, {
+        attributes: ["razonComercial"],
+      });
+
+      console.log(empresaCliente);
+
       const desde = `${new Date().getFullYear()}-01-01`;
       const hasta = new Date().toISOString().split("T")[0];
       const condition = {
         [Op.and]: [
-          { clienteId: id },
+          {
+            [Op.or]: [
+              { empresaRemitente: empresaCliente.razonComercial },
+              { clienteId: id },
+            ],
+          },
           { statusId: { [Op.between]: [1, 5] } },
           { fecha: { [Op.between]: [desde, hasta] } },
         ],
