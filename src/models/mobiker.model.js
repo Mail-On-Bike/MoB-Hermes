@@ -100,20 +100,38 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.DATEONLY,
         allowNull: true,
         get() {
-          return this.getDataValue("fechaNacimiento");
+          const fechaCorregida = new Date(
+            new Date(this.getDataValue("fechaNacimiento")).getTime() +
+              1000 * 60 * 60 * 5
+          );
+          return fechaCorregida;
         },
         set(fecha) {
-          this.setDataValue("fechaNacimiento", fecha);
+          const fechaCorregida = new Date(
+            new Date(fecha).getTime() - 1000 * 60 * 60 * 5
+          )
+            .toISOString()
+            .split("T")[0];
+          this.setDataValue("fechaNacimiento", fechaCorregida);
         },
       },
       fechaIngreso: {
         type: Sequelize.DATEONLY,
         allowNull: true,
         get() {
-          return this.getDataValue("fechaIngreso");
+          const fechaCorregida = new Date(
+            new Date(this.getDataValue("fechaIngreso")).getTime() +
+              1000 * 60 * 60 * 5
+          );
+          return fechaCorregida;
         },
         set(fecha) {
-          this.setDataValue("fechaIngreso", fecha);
+          const fechaCorregida = new Date(
+            new Date(fecha).getTime() - 1000 * 60 * 60 * 5
+          )
+            .toISOString()
+            .split("T")[0];
+          this.setDataValue("fechaIngreso", fechaCorregida);
         },
       },
     },

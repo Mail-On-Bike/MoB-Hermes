@@ -6,10 +6,18 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.DATEONLY,
         allowNull: false,
         get() {
-          return this.getDataValue("fecha");
+          const fechaCorregida = new Date(
+            new Date(this.getDataValue("fecha")).getTime() + 1000 * 60 * 60 * 5
+          );
+          return fechaCorregida;
         },
         set(fecha) {
-          this.setDataValue("fecha", fecha);
+          const fechaCorregida = new Date(
+            new Date(fecha).getTime() - 1000 * 60 * 60 * 5
+          )
+            .toISOString()
+            .split("T")[0];
+          this.setDataValue("fecha", fechaCorregida);
         },
       },
       contactoRemitente: {
