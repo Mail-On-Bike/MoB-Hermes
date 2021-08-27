@@ -1,3 +1,5 @@
+const dayjs = require("dayjs");
+
 module.exports = (sequelize, Sequelize) => {
   const Mobiker = sequelize.define(
     "mobikers",
@@ -100,18 +102,13 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.DATEONLY,
         allowNull: true,
         get() {
-          const fechaCorregida = new Date(
-            new Date(this.getDataValue("fechaNacimiento")).getTime() +
-              1000 * 60 * 60 * 5
-          );
+          const fechaCorregida = dayjs(
+            this.getDataValue("fechaNacimiento")
+          ).format("YYYY-MM-DDT10:00:00");
           return fechaCorregida;
         },
         set(fecha) {
-          const fechaCorregida = new Date(
-            new Date(fecha).getTime() - 1000 * 60 * 60 * 5
-          )
-            .toISOString()
-            .split("T")[0];
+          const fechaCorregida = dayjs(fecha).format("YYYY-MM-DDT10:00:00");
           this.setDataValue("fechaNacimiento", fechaCorregida);
         },
       },
@@ -119,18 +116,13 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.DATEONLY,
         allowNull: true,
         get() {
-          const fechaCorregida = new Date(
-            new Date(this.getDataValue("fechaIngreso")).getTime() +
-              1000 * 60 * 60 * 5
-          );
+          const fechaCorregida = dayjs(
+            this.getDataValue("fechaIngreso")
+          ).format("YYYY-MM-DDT10:00:00");
           return fechaCorregida;
         },
         set(fecha) {
-          const fechaCorregida = new Date(
-            new Date(fecha).getTime() - 1000 * 60 * 60 * 5
-          )
-            .toISOString()
-            .split("T")[0];
+          const fechaCorregida = dayjs(fecha).format("YYYY-MM-DDT10:00:00");
           this.setDataValue("fechaIngreso", fechaCorregida);
         },
       },

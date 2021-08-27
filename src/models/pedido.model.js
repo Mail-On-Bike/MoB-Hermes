@@ -1,3 +1,5 @@
+const dayjs = require("dayjs");
+
 module.exports = (sequelize, Sequelize) => {
   const Pedido = sequelize.define(
     "pedidos",
@@ -6,17 +8,13 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.DATEONLY,
         allowNull: false,
         get() {
-          const fechaCorregida = new Date(
-            new Date(this.getDataValue("fecha")).getTime() + 1000 * 60 * 60 * 5
+          const fechaCorregida = dayjs(this.getDataValue("fecha")).format(
+            "YYYY-MM-DDT10:00:00"
           );
           return fechaCorregida;
         },
         set(fecha) {
-          const fechaCorregida = new Date(
-            new Date(fecha).getTime() - 1000 * 60 * 60 * 5
-          )
-            .toISOString()
-            .split("T")[0];
+          const fechaCorregida = dayjs(fecha).format("YYYY-MM-DDT10:00:00");
           this.setDataValue("fecha", fechaCorregida);
         },
       },
